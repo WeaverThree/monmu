@@ -32,11 +32,26 @@ from evennia.settings_default import *
 ######################################################################
 
 # This is the name of your game. Make it catchy!
-SERVERNAME = "poketest"
+
+WEBSERVER_ENABLED = False
+
 
 TIME_ZONE = "America/Los_Angeles"
 TIME_FACTOR = 1.0
 MAX_CHAR_LIMIT = 20000
+
+# Different Multisession modes allow a player (=account) to connect to the
+# game simultaneously with multiple clients (=sessions).
+#  0 - single session per account (if reconnecting, disconnect old session)
+#  1 - multiple sessions per account, all sessions share output
+#  2 - multiple sessions per account, one session allowed per puppet
+#  3 - multiple sessions per account, multiple sessions per puppet (share output)
+#      session getting the same data.
+MULTISESSION_MODE = 2
+
+
+
+
 
 
 
