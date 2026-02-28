@@ -20,9 +20,12 @@ class CmdOOC(Command):
         args = str(self.args.strip())
         location = self.caller.location
 
+        
+        if not args:
+            self.msg("Can't OOC blank message.")
+            return
+
         string = "|Y<OOC>|n {}".format(caller.name)
-        if caller.db_account.name != caller.name:
-            string += "|G[{}]|n".format(caller.db_account.name)
         if args[0] == ":":
             if args[1] == "'":
                 string += "{}".format(args[1:])
