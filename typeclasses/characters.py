@@ -16,7 +16,8 @@ from evennia.objects.objects import DefaultCharacter
 
 from .objects import ObjectParent
 
-MOVE_DELAY = 20
+MOVE_DELAY = 15
+IDLE_TIME = 60*5
 
 class Character(ObjectParent, DefaultCharacter):
     """
@@ -27,6 +28,10 @@ class Character(ObjectParent, DefaultCharacter):
     properties and methods available on all Object child classes like this.
 
     """
+    pass
+
+class PlayerCharacter(Character):
+
 
     def at_pre_move(self, dest, move_type=None, **kwargs):
         if move_type == "traverse":
@@ -41,8 +46,8 @@ class Character(ObjectParent, DefaultCharacter):
 
     def at_post_move(self, src, **kwargs):
         active_players_in_room = [char 
-                for char in Character.objects.filter(Q(db_location=self.location) & ~ Q(db_key=self)) 
-                if char.idle_time < 5]
+                for char in PlayerCharacter.objects.filter(Q(db_location=self.location) & ~ Q(db_key=self)) 
+                if char.idle_time < IDLE_TIME]
         if active_players_in_room:
             self.ndb.movelock = time.time() + MOVE_DELAY
             self.msg("|MPlayer activity detected|n, locking movement for {} seconds.".format(MOVE_DELAY))

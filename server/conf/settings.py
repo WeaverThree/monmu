@@ -32,6 +32,9 @@ from evennia.settings_default import *
 ######################################################################
 
 # This is the name of your game. Make it catchy!
+SERVERNAME = "PokeTest"
+BASE_CHARACTER_TYPECLASS = "typeclasses.characters.PlayerCharacter"
+
 
 WEBSERVER_ENABLED = False
 
