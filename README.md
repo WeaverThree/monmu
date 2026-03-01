@@ -1,4 +1,4 @@
-# Welcome to Evennia!
+# It's a prototype!
 
 This is an early prototype of a MUSH/MUCK game built on the [evennia](https://github.com/evennia/evennia/) engine.
 Not much here for public consumption as of yet.
