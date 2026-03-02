@@ -8,31 +8,128 @@ with a location in the game world (like Characters, Rooms, Exits).
 
 """
 
-import re
+import string
 
 from evennia.objects.objects import DefaultObject
 
-_MU_NEWLINE_RE = re.compile(r"%[rRnN]", re.MULTILINE)
-_MU_TAB_RE = re.compile(r"%[tT]", re.MULTILINE)
-_MU_BLANK_RE = re.compile(r"%[bB]", re.MULTILINE)
+from evennia.utils import evtable
+
+from world.utils import dev_notice, builder_notice, replace_mush_escapes, header_two_slot
+
+_EXIT_NAME_ORDER = ["[N]", "[NE", "[E]", "[SE", "[S]", "[SW", "[W]", "[NW", "[U]", "[D]", "[I]", "[O]"]
+def _exit_name_sort_key(exitname):
+    """
+    Key formatted exit name to sort cardinals clockwise and first.
+
+    This assumes that every input will have a two-character color code prepended, and does some
+    silly hijinks with the key to make the sorting order what we want, but it works. Somewhat
+    fragile. Assumes that you're not going to use U/D/I/O or directional tags for any
+    exits that aren't part of the main grid.
+    """
+    try: 
+        return "[ZZZ{:02d}{}".format(_EXIT_NAME_ORDER.index(exitname[2:5])+1, exitname[2:]) 
+    except ValueError:
+        return exitname[2:]
+
 
 class ObjectParent:
     """
     This is a mixin that can be used to override *all* entities inheriting at
     some distance from DefaultObject (Objects, Exits, Characters and Rooms).
-
-    Just add any method that exists on `DefaultObject` to this class. If one
-    of the derived classes has itself defined that same hook already, that will
-    take precedence.
-
     """
+
+    def register_post_command_message(self, message):
+        """Register a message for display after the current command. Forwards to the object's account."""
+        if self.has_account:
+            self.account.register_post_command_message(message)
+
     def get_display_desc(self, looker, **kwargs):
+        """Format our desc for display"""
         desc = self.db.desc or self.default_description
-        desc = _MU_NEWLINE_RE.sub("\n", desc)
-        desc = _MU_TAB_RE.sub("    ", desc)
-        desc = _MU_BLANK_RE.sub(" ", desc)
-        return desc
+        return replace_mush_escapes(desc)
+    
+    def get_colored_display_name(self, looker, **kwargs):
+        """Takes display name and colors it"""
+        return self.get_display_name()
+
+    def return_appearance(self, looker, **kwargs):
+        """
+        Format our overall appearance for being looked at.
         
+        Uses room-style appearance if you are inside this object, instead of switching on object type.
+        """
+
+        if not looker:
+            return
+        if looker in self.contents:
+            return self.get_room_style_appearance(looker, **kwargs)
+        else:
+            return super().return_appearance(looker, **kwargs)
+
+    def get_room_style_appearance(self, looker, **kwargs):
+        """Return a big fancy room view with columns for stuff in the room."""
+        if not looker:
+            return
+        
+        roomname = self.get_colored_display_name(looker, **kwargs),
+        extra_name_info = self.get_extra_display_name_info(looker, **kwargs),
+        desc = self.get_display_desc(looker, **kwargs),
+        
+        from .rooms import Room
+
+        if isinstance(self, Room): # Only warn about zones if it's actually a room we're in
+            zone = self.tags.get(category="Zone", return_list=True)
+            if len(zone) == 0:
+                builder_notice(looker, "You should zone this room.")
+            elif len(zone) != 1:
+                builder_notice(looker, "Room should only have one zone tag.")
+            zone = string.capwords(zone[0]) if zone else ""
+        else:
+            zone = "Somewhere Strange"
+
+        characters = sorted(self.contents_get(content_type="character"), key = lambda x: x.name)
+        char_names = []
+        for char in characters:
+            if not char.access(looker, "view"):
+                continue
+            if not char.access(looker, "search", default=True):
+                continue
+            char_names.append(char.get_colored_display_name(looker))
+            
+        things = self.filter_visible(self.contents_get(content_type="object"), looker, **kwargs)
+        
+        feature_names = []
+        interactable_names = []
+        thing_names = []
+        for thing in sorted(things, key=lambda x: x.name):
+            name = thing.get_colored_display_name(looker, **kwargs)
+            if isinstance(thing, Feature):
+                feature_names.append(name)
+            elif isinstance(thing, Interactable):
+                interactable_names.append(name)
+            else:
+                thing_names.append(name)
+
+        feature_line = f"\n|X|[xFeatures:|n {', '.join(sorted(feature_names))}." if feature_names else ""
+
+        exits = self.filter_visible(self.contents_get(content_type="exit"), looker, **kwargs)
+        exit_names = [exit.get_colored_display_name(looker, **kwargs) for exit in exits]
+        exit_names.sort(key=_exit_name_sort_key)
+        
+        header = header_two_slot(80, roomname[0] + extra_name_info[0], zone)
+        
+        looktable = evtable.EvTable("|c-People-|n","|c-Things-|n","|c-Exits-|n",
+                table=(char_names, sorted(interactable_names) + sorted(thing_names), exit_names),
+                border_width=0, pad_left=0
+        )
+
+        looktable.reformat_column(0,width=25)
+        looktable.reformat_column(1,width=25)
+        looktable.reformat_column(2,width=30)
+
+        return f"\n{header}\n{desc[0]}{feature_line}\n\n{looktable}\n"
+
+
 
 
 class Object(ObjectParent, DefaultObject):
@@ -41,189 +138,21 @@ class Object(ObjectParent, DefaultObject):
     have an actual presence in-game. DefaultObjects generally have a
     location. They can also be manipulated and looked at. Game
     entities you define should inherit from DefaultObject at some distance.
-
-    It is recommended to create children of this class using the
-    `evennia.create_object()` function rather than to initialize the class
-    directly - this will both set things up and efficiently save the object
-    without `obj.save()` having to be called explicitly.
-
-    Note: Check the autodocs for complete class members, this may not always
-    be up-to date.
-
-    * Base properties defined/available on all Objects
-
-     key (string) - name of object
-     name (string)- same as key
-     dbref (int, read-only) - unique #id-number. Also "id" can be used.
-     date_created (string) - time stamp of object creation
-
-     account (Account) - controlling account (if any, only set together with
-                       sessid below)
-     sessid (int, read-only) - session id (if any, only set together with
-                       account above). Use `sessions` handler to get the
-                       Sessions directly.
-     location (Object) - current location. Is None if this is a room
-     home (Object) - safety start-location
-     has_account (bool, read-only)- will only return *connected* accounts
-     contents (list, read only) - returns all objects inside this object
-     exits (list of Objects, read-only) - returns all exits from this
-                       object, if any
-     destination (Object) - only set if this object is an exit.
-     is_superuser (bool, read-only) - True/False if this user is a superuser
-     is_connected (bool, read-only) - True if this object is associated with
-                            an Account with any connected sessions.
-     has_account (bool, read-only) - True is this object has an associated account.
-     is_superuser (bool, read-only): True if this object has an account and that
-                        account is a superuser.
-
-    * Handlers available
-
-     aliases - alias-handler: use aliases.add/remove/get() to use.
-     permissions - permission-handler: use permissions.add/remove() to
-                   add/remove new perms.
-     locks - lock-handler: use locks.add() to add new lock strings
-     scripts - script-handler. Add new scripts to object with scripts.add()
-     cmdset - cmdset-handler. Use cmdset.add() to add new cmdsets to object
-     nicks - nick-handler. New nicks with nicks.add().
-     sessions - sessions-handler. Get Sessions connected to this
-                object with sessions.get()
-     attributes - attribute-handler. Use attributes.add/remove/get.
-     db - attribute-handler: Shortcut for attribute-handler. Store/retrieve
-            database attributes using self.db.myattr=val, val=self.db.myattr
-     ndb - non-persistent attribute handler: same as db but does not create
-            a database entry when storing data
-
-    * Helper methods (see src.objects.objects.py for full headers)
-
-     get_search_query_replacement(searchdata, **kwargs)
-     get_search_direct_match(searchdata, **kwargs)
-     get_search_candidates(searchdata, **kwargs)
-     get_search_result(searchdata, attribute_name=None, typeclass=None,
-                       candidates=None, exact=False, use_dbref=None, tags=None, **kwargs)
-     get_stacked_result(results, **kwargs)
-     handle_search_results(searchdata, results, **kwargs)
-     search(searchdata, global_search=False, use_nicks=True, typeclass=None,
-            location=None, attribute_name=None, quiet=False, exact=False,
-            candidates=None, use_locks=True, nofound_string=None,
-            multimatch_string=None, use_dbref=None, tags=None, stacked=0)
-     search_account(searchdata, quiet=False)
-     execute_cmd(raw_string, session=None, **kwargs))
-     msg(text=None, from_obj=None, session=None, options=None, **kwargs)
-     for_contents(func, exclude=None, **kwargs)
-     msg_contents(message, exclude=None, from_obj=None, mapping=None,
-                  raise_funcparse_errors=False, **kwargs)
-     move_to(destination, quiet=False, emit_to_obj=None, use_destination=True)
-     clear_contents()
-     create(key, account, caller, method, **kwargs)
-     copy(new_key=None)
-     at_object_post_copy(new_obj, **kwargs)
-     delete()
-     is_typeclass(typeclass, exact=False)
-     swap_typeclass(new_typeclass, clean_attributes=False, no_default=True)
-     access(accessing_obj, access_type='read', default=False,
-            no_superuser_bypass=False, **kwargs)
-     filter_visible(obj_list, looker, **kwargs)
-     get_default_lockstring()
-     get_cmdsets(caller, current, **kwargs)
-     check_permstring(permstring)
-     get_cmdset_providers()
-     get_display_name(looker=None, **kwargs)
-     get_extra_display_name_info(looker=None, **kwargs)
-     get_numbered_name(count, looker, **kwargs)
-     get_display_header(looker, **kwargs)
-     get_display_desc(looker, **kwargs)
-     get_display_exits(looker, **kwargs)
-     get_display_characters(looker, **kwargs)
-     get_display_things(looker, **kwargs)
-     get_display_footer(looker, **kwargs)
-     format_appearance(appearance, looker, **kwargs)
-     return_apperance(looker, **kwargs)
-
-    * Hooks (these are class methods, so args should start with self):
-
-     basetype_setup()     - only called once, used for behind-the-scenes
-                            setup. Normally not modified.
-     basetype_posthook_setup() - customization in basetype, after the object
-                            has been created; Normally not modified.
-
-     at_object_creation() - only called once, when object is first created.
-                            Object customizations go here.
-     at_object_delete() - called just before deleting an object. If returning
-                            False, deletion is aborted. Note that all objects
-                            inside a deleted object are automatically moved
-                            to their <home>, they don't need to be removed here.
-
-     at_init()            - called whenever typeclass is cached from memory,
-                            at least once every server restart/reload
-     at_first_save()
-     at_cmdset_get(**kwargs) - this is called just before the command handler
-                            requests a cmdset from this object. The kwargs are
-                            not normally used unless the cmdset is created
-                            dynamically (see e.g. Exits).
-     at_pre_puppet(account)- (account-controlled objects only) called just
-                            before puppeting
-     at_post_puppet()     - (account-controlled objects only) called just
-                            after completing connection account<->object
-     at_pre_unpuppet()    - (account-controlled objects only) called just
-                            before un-puppeting
-     at_post_unpuppet(account) - (account-controlled objects only) called just
-                            after disconnecting account<->object link
-     at_server_reload()   - called before server is reloaded
-     at_server_shutdown() - called just before server is fully shut down
-
-     at_access(result, accessing_obj, access_type) - called with the result
-                            of a lock access check on this object. Return value
-                            does not affect check result.
-
-     at_pre_move(destination)             - called just before moving object
-                        to the destination. If returns False, move is cancelled.
-     announce_move_from(destination)         - called in old location, just
-                        before move, if obj.move_to() has quiet=False
-     announce_move_to(source_location)       - called in new location, just
-                        after move, if obj.move_to() has quiet=False
-     at_post_move(source_location)          - always called after a move has
-                        been successfully performed.
-     at_pre_object_leave(leaving_object, destination, **kwargs)
-     at_object_leave(obj, target_location, move_type="move", **kwargs)
-     at_object_leave(obj, target_location)   - called when an object leaves
-                        this object in any fashion
-     at_pre_object_receive(obj, source_location)
-     at_object_receive(obj, source_location, move_type="move", **kwargs) - called when this object receives
-                        another object
-     at_post_move(source_location, move_type="move", **kwargs)
-
-     at_traverse(traversing_object, target_location, **kwargs) - (exit-objects only)
-                              handles all moving across the exit, including
-                              calling the other exit hooks. Use super() to retain
-                              the default functionality.
-     at_post_traverse(traversing_object, source_location) - (exit-objects only)
-                              called just after a traversal has happened.
-     at_failed_traverse(traversing_object)      - (exit-objects only) called if
-                       traversal fails and property err_traverse is not defined.
-
-     at_msg_receive(self, msg, from_obj=None, **kwargs) - called when a message
-                             (via self.msg()) is sent to this obj.
-                             If returns false, aborts send.
-     at_msg_send(self, msg, to_obj=None, **kwargs) - called when this objects
-                             sends a message to someone via self.msg().
-
-     return_appearance(looker) - describes this object. Used by "look"
-                                 command by default
-     at_desc(looker=None)      - called by 'look' whenever the
-                                 appearance is requested.
-     at_pre_get(getter, **kwargs)
-     at_get(getter)            - called after object has been picked up.
-                                 Does not stop pickup.
-     at_pre_give(giver, getter, **kwargs)
-     at_give(giver, getter, **kwargs)
-     at_pre_drop(dropper, **kwargs)
-     at_drop(dropper, **kwargs)          - called when this object has been dropped.
-     at_pre_say(speaker, message, **kwargs)
-     at_say(message, msg_self=None, msg_location=None, receivers=None, msg_receivers=None, **kwargs)
-
-     at_look(target, **kwargs)
-     at_desc(looker=None)
-
     """
+    pass
 
+class Interactable(Object):
+    """
+    Something you can do things with. How this is to be implemented is TBD.
+    """
+    def get_colored_display_name(self, looker, **kwargs):
+        """Takes display name and colors it"""
+        return f"|G{self.get_display_name(looker, **kwargs)}|n"
+
+class Feature(Object):
+    """
+    Something that decorates a place. The idea is to make these invisible and key them off
+    highlighted words in the room description so that they don't take up any description space.
+    That's why they show up so prominently in the room view when not inivisible. 
+    """
     pass

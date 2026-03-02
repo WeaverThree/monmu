@@ -16,11 +16,14 @@ class Exit(ObjectParent, DefaultExit):
     """
     Exits are connectors between rooms. Exits are normal Objects except
     they defines the `destination` property and overrides some hooks
-    and methods to represent the exits.
-
-    See mygame/typeclasses/objects.py for a list of
-    properties and methods available on all Objects child classes like this.
-
+    and methods to represent the exits. 
     """
-
-    pass
+    def get_colored_display_name(self, looker, **kwargs):
+        name = self.get_display_name(looker, **kwargs).strip()
+        aliases = self.aliases.all()
+        if aliases:
+            best_alias = min(aliases, key=len)
+            if len(best_alias) < len(name):
+                name = "|g[{}]|n {}".format(best_alias.upper(), name)
+        return name
+            

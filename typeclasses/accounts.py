@@ -135,8 +135,12 @@ class Account(DefaultAccount):
      - at_post_chnnel_msg(message, channel, senders=None, **kwargs)
 
     """
-
-    pass
+    def register_post_command_message(self, message):
+        """Register message to be sent at the end of the current command."""
+        if self.ndb.post_command_messages:
+            self.ndb.post_command_messages.append(message)
+        else:
+            self.ndb.post_command_messages = [message]
 
 
 class Guest(DefaultGuest):
