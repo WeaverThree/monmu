@@ -7,7 +7,11 @@ _MU_TAB_RE = re.compile(r"%[tT]", re.MULTILINE)
 _MU_BLANK_RE = re.compile(r"%[bB]", re.MULTILINE)
 
 def replace_mush_escapes(msg):
-    """Handle MUSH special characters. Replaces %r->%n, %b->space, %t->spaces."""
+    """
+    Handle MUSH special characters with evennia ones. Replaces %r->|/, %b->|_, %t->|-.
+    
+    Does not handle escaping %'s or anything, it's a pretty dumb function. 
+    """
     msg = _MU_NEWLINE_RE.sub("|/", msg)
     msg = _MU_TAB_RE.sub("|-", msg)
     msg = _MU_BLANK_RE.sub("|_", msg)
