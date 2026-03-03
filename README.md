@@ -8,8 +8,6 @@ I'm just making this public to make things easier.
 
 # Todo list!
 
-- Transform %r and co into evennia |/ and such before they get stored in the database. Also parse
-  them more globally.
 - Probably need to customize all of the emitting functions anyway.
     - Third person command output for everyone
     - Name colors on command output
