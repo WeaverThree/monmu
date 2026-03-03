@@ -59,10 +59,10 @@ class Character(ObjectParent, DefaultCharacter):
         
         if not self.is_player_character:
             color = "|x"
-        if not self.has_account:
-            color = ""
-        elif looker == self:
+        elif looker == self or looker == self.account:
             color="|420"
+        elif not self.has_account:
+            color = ""
         elif self.account.is_superuser:
             color = "|[M|X" if self.is_comms_idle else "|[m|X"
         elif self.account.permissions.check("Developer"):
@@ -72,9 +72,11 @@ class Character(ObjectParent, DefaultCharacter):
         elif self.account.permissions.check("Builder"):
             color = "|Y" if self.is_comms_idle else "|y"
         elif not self.is_comms_idle:
+            color = "|g"
+        else:
             color = "|G"
 
-        return "{}{}{}".format(color, self.get_display_name(), "|n" if color else "")
+        return "{}{}{}".format(color, self.name, "|n" if color else "")
         
 
 class PlayerCharacter(Character):

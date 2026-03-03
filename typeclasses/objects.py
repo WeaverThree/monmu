@@ -48,9 +48,9 @@ class ObjectParent:
         desc = self.db.desc or self.default_description
         return replace_mush_escapes(desc)
     
-    def get_colored_display_name(self, looker, **kwargs):
+    def get_display_name(self, looker, **kwargs):
         """Takes display name and colors it"""
-        return self.get_display_name()
+        return self.name
 
     def return_appearance(self, looker, **kwargs):
         """
@@ -71,7 +71,7 @@ class ObjectParent:
         if not looker:
             return
         
-        roomname = self.get_colored_display_name(looker, **kwargs),
+        roomname = self.get_display_name(looker, **kwargs),
         extra_name_info = self.get_extra_display_name_info(looker, **kwargs),
         desc = self.get_display_desc(looker, **kwargs),
         
@@ -94,7 +94,7 @@ class ObjectParent:
                 continue
             if not char.access(looker, "search", default=True):
                 continue
-            char_names.append(char.get_colored_display_name(looker))
+            char_names.append(char.get_display_name(looker))
             
         things = self.filter_visible(self.contents_get(content_type="object"), looker, **kwargs)
         
@@ -102,7 +102,7 @@ class ObjectParent:
         interactable_names = []
         thing_names = []
         for thing in sorted(things, key=lambda x: x.name):
-            name = thing.get_colored_display_name(looker, **kwargs)
+            name = thing.get_display_name(looker, **kwargs)
             if isinstance(thing, Feature):
                 feature_names.append(name)
             elif isinstance(thing, Interactable):
@@ -113,7 +113,7 @@ class ObjectParent:
         feature_line = f"\n|X|[xFeatures:|n {', '.join(sorted(feature_names))}." if feature_names else ""
 
         exits = self.filter_visible(self.contents_get(content_type="exit"), looker, **kwargs)
-        exit_names = [exit.get_colored_display_name(looker, **kwargs) for exit in exits]
+        exit_names = [exit.get_display_name(looker, **kwargs) for exit in exits]
         exit_names.sort(key=_exit_name_sort_key)
         
         header = header_two_slot(80, roomname[0] + extra_name_info[0], zone)
@@ -145,9 +145,9 @@ class Interactable(Object):
     """
     Something you can do things with. How this is to be implemented is TBD.
     """
-    def get_colored_display_name(self, looker, **kwargs):
+    def get_display_name(self, looker, **kwargs):
         """Takes display name and colors it"""
-        return f"|G{self.get_display_name(looker, **kwargs)}|n"
+        return f"|G{self.name}|n"
 
 class Feature(Object):
     """

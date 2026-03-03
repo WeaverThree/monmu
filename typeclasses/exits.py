@@ -18,8 +18,8 @@ class Exit(ObjectParent, DefaultExit):
     they defines the `destination` property and overrides some hooks
     and methods to represent the exits. 
     """
-    def get_colored_display_name(self, looker, **kwargs):
-        name = self.get_display_name(looker, **kwargs).strip()
+    def get_display_name(self, looker, **kwargs):
+        name = self.name
         aliases = self.aliases.all()
         if aliases:
             best_alias = min(aliases, key=len)
