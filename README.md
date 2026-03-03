@@ -15,6 +15,9 @@ I'm just making this public to make things easier.
     - Spoof command
     - Change RP trap system to use time since someone emitted text into a room rather than their unidle presence
     - Implement separate comms idle time perhaps
+    - Restyle chan, chan/all
+    - Restyle who
+    - ConnectInfo is leaking peoples IPs and shit
 - Character creation system
 - Stats.
     - Pokémon type
@@ -31,11 +34,14 @@ I'm just making this public to make things easier.
         - Move object?
     - IC Wordcount
     - Affiliation
+    - Abilities
+    - Pronouns
+    - Orientation
 - Read Pokémon data from a CSV
     - Couple of basic emergency failovers in case can't find CSV
     - But don't want IP stuff in the repo
 - Nature matrix? Also CSV?
 - Type matrix (CSV?)
-
+- Building system for normal users
 
 

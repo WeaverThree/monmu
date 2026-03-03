@@ -11,10 +11,17 @@ creation commands.
 import time
 
 from django.db.models import Q 
+from django.conf import settings
 
+from evennia.comms.models import ChannelDB
 from evennia.objects.objects import DefaultCharacter
+from evennia.utils import logger
+
+
 
 from .objects import ObjectParent
+
+
 
 MOVE_DELAY = 15
 IDLE_TIME = 60*5
@@ -46,7 +53,7 @@ class Character(ObjectParent, DefaultCharacter):
         """Is this a player character. Better than using instanceof."""
         return False
     
-    def get_colored_display_name(self, looker=None):
+    def get_display_name(self, looker=None):
         """
             Color this character name based on what their account's permissions are,
             or otherwise what type of character it is. Staff is always staff. Quelling
@@ -90,6 +97,33 @@ class PlayerCharacter(Character):
         """Is this a player character. Better than using instanceof."""
         return True
 
+    def at_object_creation(self):
+        """
+        Setup default channels and messaging permissions that now live on characters instead of
+        accounts.
+        """
+        # For the character-focused channel system
+        self.locks.add("msg:all()")
+
+        # Transplanted from default account.
+
+        channel = ChannelDB.objects.get_channel("ConnectInfo")
+        if not channel or not (channel.access(self, "listen") and channel.connect(self)):
+            logger.log_err("New character '{self.key}' could not connect to ConnecInfo")
+            
+        for chan_info in settings.DEFAULT_CHANNELS:
+            if chankey := chan_info.get("key"):
+                channel = ChannelDB.objects.get_channel(chankey)
+                if not channel or not (channel.access(self, "listen") and channel.connect(self)):
+                    logger.log_err(f"New character '{self.key}' could not connect to default channel '{chankey}'!")
+            else:
+                logger.log_err(f"Default channel '{chan_info}' is missing a 'key' field!")
+
+
+
+        return super().at_object_creation() # Not sure if return part is needed but
+
+
     def at_pre_move(self, dest, move_type=None, **kwargs):
         if move_type == "traverse":
             now = time.time()
@@ -113,3 +147,86 @@ class PlayerCharacter(Character):
         else:
             self.ndb.movelock = None;
         super().at_post_move(src, **kwargs)
+
+
+    def at_pre_channel_msg(self, message, channel, senders=None, **kwargs):
+        """
+        Called by the Channel just before passing a message into `channel_msg`.
+        This allows for tweak messages per-user and also to abort the
+        receive on the receiver-level. (Copied from Account)
+
+        Args:
+            message (str): The message sent to the channel.
+            channel (Channel): The sending channel.
+            senders (list, optional): Accounts or Objects acting as senders.
+                For most normal messages, there is only a single sender. If
+                there are no senders, this may be a broadcasting message.
+            **kwargs: These are additional keywords passed into `channel_msg`.
+                If `no_prefix=True` or `emit=True` are passed, the channel
+                prefix will not be added (`[channelname]: ` by default)
+
+        Returns:
+            str or None: Allows for customizing the message for this recipient.
+                If returning `None` (or `False`) message-receiving is aborted.
+                The returning string will be passed into `self.channel_msg`.
+
+        Notes:
+            This support posing/emotes by starting channel-send with : or ;.
+
+        """
+        if senders:
+            sender_string = ", ".join(sender.get_display_name(self) for sender in senders)
+            message_lstrip = message.lstrip()
+            if message_lstrip.startswith((":", ";")):
+                # this is a pose, should show as e.g. "User1 smiles to channel"
+                spacing = "" if message_lstrip[1:].startswith((":", "'", ",")) else " "
+                message = f"{sender_string}{spacing}{message_lstrip[1:]}"
+            else:
+                # normal message
+                message = f"{sender_string}: {message}"
+
+        if not kwargs.get("no_prefix") and not kwargs.get("emit"):
+            message = channel.channel_prefix() + message
+
+        return message
+
+    def channel_msg(self, message, channel, senders=None, **kwargs):
+        """
+        This performs the actions of receiving a message to an un-muted
+        channel. (Copied from Account)
+
+        Args:
+            message (str): The message sent to the channel.
+            channel (Channel): The sending channel.
+            senders (list, optional): Accounts or Objects acting as senders.
+                For most normal messages, there is only a single sender. If
+                there are no senders, this may be a broadcasting message or
+                similar.
+            **kwargs: These are additional keywords originally passed into
+                `Channel.msg`.
+
+        Notes:
+            Before this, `Channel.at_pre_channel_msg` will fire, which offers a way
+            to customize the message for the receiver on the channel-level.
+
+        """
+        self.msg(
+            text=(message, {"from_channel": channel.id}),
+            from_obj=senders,
+            options={"from_channel": channel.id},
+        )
+
+    def at_post_channel_msg(self, message, channel, senders=None, **kwargs):
+        """
+        Called by `self.channel_msg` after message was received. (Copied from Account)
+
+        Args:
+            message (str): The message sent to the channel.
+            channel (Channel): The sending channel.
+            senders (list, optional): Accounts or Objects acting as senders.
+                For most normal messages, there is only a single sender. If
+                there are no senders, this may be a broadcasting message.
+            **kwargs: These are additional keywords passed into `channel_msg`.
+
+        """
+        pass

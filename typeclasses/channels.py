@@ -115,4 +115,5 @@ class Channel(DefaultChannel):
 
     """
 
-    pass
+    channel_prefix_string = "|y[{channelname}]|n "
+

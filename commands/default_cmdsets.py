@@ -18,6 +18,7 @@ from evennia import default_cmds
 
 from . import ooc
 from . import building_overrides
+from . import comms_override
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -39,6 +40,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(ooc.CmdOOC())
         self.add(building_overrides.CmdDesc())
         self.add(building_overrides.CmdDestroy())
+        self.add(comms_override.CmdChannel())
+        self.add(comms_override.CmdPage())
 
 
 
@@ -61,6 +64,8 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.remove("channel")
+        self.remove("page")
         self.remove("ic")
         self.remove("ooc")
         self.remove("charcreate")

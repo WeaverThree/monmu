@@ -57,6 +57,68 @@ MULTISESSION_MODE = 2
 
 
 
+# The mudinfo channel is a read-only channel used by Evennia to replay status
+# messages, connection info etc to staff. The superuser will automatically be
+# subscribed to this channel. If set to None, the channel is disabled and
+# status messages will only be logged (not recommended).
+CHANNEL_MUDINFO = {
+    "key": "MudInfo",
+    "aliases": "",
+    "desc": "Status log",
+    "locks": "control:perm(Developer);listen:perm(Admin);send:none()",
+}
+# Optional channel (same form as CHANNEL_MUDINFO) that will receive connection
+# messages like ("<account> has (dis)connected"). While the MudInfo channel
+# will also receieve this info, this channel is meant for non-staffers. If
+# None, this information will only be logged.
+CHANNEL_CONNECTINFO = {
+    "key": "ConnectInfo",
+    "aliases": "",
+    "desc": "Connection log",
+    "locks": "control:perm(Developer);listen:all();send:none()",
+}
+# New accounts will auto-sub to the default channels given below (but they can
+# unsub at any time). Traditionally, at least 'public' should exist. Entries
+# will be (re)created on the next reload, but removing or updating a same-key
+# channel from this list will NOT automatically change/remove it in the game,
+# that needs to be done manually. Note: To create other, non-auto-subbed
+# channels, create them manually in server/conf/at_initial_setup.py.
+DEFAULT_CHANNELS = [
+    {
+        "key": "Staff",
+        "aliases": (),
+        "desc": "Staff channel",
+        "locks": "control:perm(Admin);listen:perm(Builder);send:perm(Builder)",
+    },
+    {
+        "key": "Public",
+        "aliases": ("pub",),
+        "desc": "Public discussion, general OOC",
+        "locks": "control:perm(Admin);listen:all();send:all()",
+    },
+    {
+        "key": "Guild",
+        "aliases": (),
+        "desc": "Guild OOC",
+        "locks": "control:perm(Admin);listen:all();send:all()",
+    },
+    {
+        "key": "Rogue",
+        "aliases": (),
+        "desc": "Rogue OOC",
+        "locks": "control:perm(Admin);listen:all();send:all()",
+    },
+    {
+        "key": "Mercenary",
+        "aliases": ("merc",),
+        "desc": "Mercenary OOC",
+        "locks": "control:perm(Admin);listen:all();send:all()",
+    },
+]
+
+
+
+
 
 
 ######################################################################

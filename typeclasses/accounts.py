@@ -22,7 +22,38 @@ several more options for customizing the Guest account system.
 
 """
 
+
+
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
+
+from django.conf import settings
+from django.utils.translation import gettext as _
+
+from evennia.comms.models import ChannelDB
+from evennia.server.signals import (
+    SIGNAL_ACCOUNT_POST_CREATE,
+)
+from evennia.server.throttle import Throttle
+from evennia.utils import create, logger
+from evennia.utils.utils import (
+    variable_from_module,
+)
+
+__all__ = ("DefaultAccount", "DefaultGuest")
+
+_AUTO_CREATE_CHARACTER_WITH_ACCOUNT = settings.AUTO_CREATE_CHARACTER_WITH_ACCOUNT
+
+# Create throttles for too many account-creations and login attempts
+CREATION_THROTTLE = Throttle(
+    name="creation",
+    limit=settings.CREATION_THROTTLE_LIMIT,
+    timeout=settings.CREATION_THROTTLE_TIMEOUT,
+)
+LOGIN_THROTTLE = Throttle(
+    name="login", limit=settings.LOGIN_THROTTLE_LIMIT, timeout=settings.LOGIN_THROTTLE_TIMEOUT
+)
+
+
 
 
 class Account(DefaultAccount):
@@ -35,106 +66,152 @@ class Account(DefaultAccount):
     etc. They are OOC entities without presence in-game. An Account
     can connect to a Character Object in order to "enter" the
     game.
-
-    Account Typeclass API:
-
-    * Available properties (only available on initiated typeclass objects)
-
-     - key (string) - name of account
-     - name (string)- wrapper for user.username
-     - aliases (list of strings) - aliases to the object. Will be saved to
-            database as AliasDB entries but returned as strings.
-     - dbref (int, read-only) - unique #id-number. Also "id" can be used.
-     - date_created (string) - time stamp of object creation
-     - permissions (list of strings) - list of permission strings
-     - user (User, read-only) - django User authorization object
-     - obj (Object) - game object controlled by account. 'character' can also
-                     be used.
-     - is_superuser (bool, read-only) - if the connected user is a superuser
-
-    * Handlers
-
-     - locks - lock-handler: use locks.add() to add new lock strings
-     - db - attribute-handler: store/retrieve database attributes on this
-                              self.db.myattr=val, val=self.db.myattr
-     - ndb - non-persistent attribute handler: same as db but does not
-                                  create a database entry when storing data
-     - scripts - script-handler. Add new scripts to object with scripts.add()
-     - cmdset - cmdset-handler. Use cmdset.add() to add new cmdsets to object
-     - nicks - nick-handler. New nicks with nicks.add().
-     - sessions - session-handler. Use session.get() to see all sessions connected, if any
-     - options - option-handler. Defaults are taken from settings.OPTIONS_ACCOUNT_DEFAULT
-     - characters - handler for listing the account's playable characters
-
-    * Helper methods (check autodocs for full updated listing)
-
-     - msg(text=None, from_obj=None, session=None, options=None, **kwargs)
-     - execute_cmd(raw_string)
-     - search(searchdata, return_puppet=False, search_object=False, typeclass=None,
-                      nofound_string=None, multimatch_string=None, use_nicks=True,
-                      quiet=False, **kwargs)
-     - is_typeclass(typeclass, exact=False)
-     - swap_typeclass(new_typeclass, clean_attributes=False, no_default=True)
-     - access(accessing_obj, access_type='read', default=False, no_superuser_bypass=False, **kwargs)
-     - check_permstring(permstring)
-     - get_cmdsets(caller, current, **kwargs)
-     - get_cmdset_providers()
-     - uses_screenreader(session=None)
-     - get_display_name(looker, **kwargs)
-     - get_extra_display_name_info(looker, **kwargs)
-     - disconnect_session_from_account()
-     - puppet_object(session, obj)
-     - unpuppet_object(session)
-     - unpuppet_all()
-     - get_puppet(session)
-     - get_all_puppets()
-     - is_banned(**kwargs)
-     - get_username_validators(validator_config=settings.AUTH_USERNAME_VALIDATORS)
-     - authenticate(username, password, ip="", **kwargs)
-     - normalize_username(username)
-     - validate_username(username)
-     - validate_password(password, account=None)
-     - set_password(password, **kwargs)
-     - get_character_slots()
-     - get_available_character_slots()
-     - create_character(*args, **kwargs)
-     - create(*args, **kwargs)
-     - delete(*args, **kwargs)
-     - channel_msg(message, channel, senders=None, **kwargs)
-     - idle_time()
-     - connection_time()
-
-    * Hook methods
-
-     basetype_setup()
-     at_account_creation()
-
-     > note that the following hooks are also found on Objects and are
-       usually handled on the character level:
-
-     - at_init()
-     - at_first_save()
-     - at_access()
-     - at_cmdset_get(**kwargs)
-     - at_password_change(**kwargs)
-     - at_first_login()
-     - at_pre_login()
-     - at_post_login(session=None)
-     - at_failed_login(session, **kwargs)
-     - at_disconnect(reason=None, **kwargs)
-     - at_post_disconnect(**kwargs)
-     - at_message_receive()
-     - at_message_send()
-     - at_server_reload()
-     - at_server_shutdown()
-     - at_look(target=None, session=None, **kwargs)
-     - at_post_create_character(character, **kwargs)
-     - at_post_add_character(char)
-     - at_post_remove_character(char)
-     - at_pre_channel_msg(message, channel, senders=None, **kwargs)
-     - at_post_chnnel_msg(message, channel, senders=None, **kwargs)
-
     """
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        """
+        Creates an Account (or Account/Character pair for MULTISESSION_MODE<2)
+        with default (or overridden) permissions and having joined them to the
+        appropriate default channels.
+
+        Overriding this to remove channel creation --Weaver
+
+        Keyword Args:
+            username (str): Username of Account owner
+            password (str): Password of Account owner
+            email (str, optional): Email address of Account owner
+            ip (str, optional): IP address of requesting connection
+            guest (bool, optional): Whether or not this is to be a Guest account
+
+            permissions (str, optional): Default permissions for the Account
+            typeclass (str, optional): Typeclass to use for new Account
+            character_typeclass (str, optional): Typeclass to use for new char
+                when applicable.
+
+        Returns:
+            account (Account): Account if successfully created; None if not
+            errors (list): List of error messages in string form
+
+        """
+
+        account = None
+        errors = []
+
+        username = kwargs.get("username", "")
+        password = kwargs.get("password", "")
+        email = kwargs.get("email", "").strip()
+        guest = kwargs.get("guest", False)
+
+        permissions = kwargs.get("permissions", settings.PERMISSION_ACCOUNT_DEFAULT)
+        typeclass = kwargs.get("typeclass", cls)
+
+        ip = kwargs.get("ip", "")
+        if isinstance(ip, (tuple, list)):
+            ip = ip[0]
+
+        if ip and CREATION_THROTTLE.check(ip):
+            errors.append(
+                _("You are creating too many accounts. Please log into an existing account.")
+            )
+            return None, errors
+
+        # Normalize username
+        username = cls.normalize_username(username)
+
+        # Validate username
+        if not guest:
+            valid, errs = cls.validate_username(username)
+            if not valid:
+                # this echoes the restrictions made by django's auth
+                # module (except not allowing spaces, for convenience of
+                # logging in).
+                errors.extend(errs)
+                return None, errors
+
+        # Validate password
+        # Have to create a dummy Account object to check username similarity
+        valid, errs = cls.validate_password(password, account=cls(username=username))
+        if not valid:
+            errors.extend(errs)
+            return None, errors
+
+        # Check IP and/or name bans
+        banned = cls.is_banned(username=username, ip=ip)
+        if banned:
+            # this is a banned IP or name!
+            string = _(
+                "|rYou have been banned and cannot continue from here."
+                "\nIf you feel this ban is in error, please email an admin.|x"
+            )
+            errors.append(string)
+            return None, errors
+
+        # everything's ok. Create the new account.
+        try:
+            try:
+                account = create.create_account(
+                    username, email, password, permissions=permissions, typeclass=typeclass
+                )
+                logger.log_sec(f"Account Created: {account} (IP: {ip}).")
+
+            except Exception:
+                errors.append(
+                    _(
+                        "There was an error creating the Account. "
+                        "If this problem persists, contact an admin."
+                    )
+                )
+                logger.log_trace()
+                return None, errors
+
+            # This needs to be set so the engine knows this account is
+            # logging in for the first time. (so it knows to call the right
+            # hooks during login later)
+            account.db.FIRST_LOGIN = True
+
+            # Record IP address of creation, if available
+            if ip:
+                account.db.creator_ip = ip
+
+            # join the new account to the public channels
+            # for chan_info in settings.DEFAULT_CHANNELS:
+            #     if chankey := chan_info.get("key"):
+            #         channel = ChannelDB.objects.get_channel(chankey)
+            #         if not channel or not (
+            #             channel.access(account, "listen") and channel.connect(account)
+            #         ):
+            #             string = (
+            #                 f"New account '{account.key}' could not connect to default channel"
+            #                 f" '{chankey}'!"
+            #             )
+            #             logger.log_err(string)
+            #     else:
+            #         logger.log_err(f"Default channel '{chan_info}' is missing a 'key' field!")
+
+            if account and _AUTO_CREATE_CHARACTER_WITH_ACCOUNT:
+                # Auto-create a character to go with this account
+
+                character, errs = account.create_character(
+                    typeclass=kwargs.get("character_typeclass", account.default_character_typeclass)
+                )
+                if errs:
+                    errors.extend(errs)
+
+        except Exception:
+            # We are in the middle between logged in and -not, so we have
+            # to handle tracebacks ourselves at this point. If we don't,
+            # we won't see any errors at all.
+            errors.append(_("An error occurred. Please e-mail an admin if the problem persists."))
+            logger.log_trace()
+
+        # Update the throttle to indicate a new account was created from this IP
+        if ip and not guest:
+            CREATION_THROTTLE.update(ip, "Too many accounts being created.")
+        SIGNAL_ACCOUNT_POST_CREATE.send(sender=account, ip=ip)
+        return account, errors
+
+
     def register_post_command_message(self, message):
         """Register message to be sent at the end of the current command."""
         if self.ndb.post_command_messages:
