@@ -8,9 +8,9 @@ _MU_BLANK_RE = re.compile(r"%[bB]", re.MULTILINE)
 
 def replace_mush_escapes(msg):
     """Handle MUSH special characters. Replaces %r->%n, %b->space, %t->spaces."""
-    msg = _MU_NEWLINE_RE.sub("\n", msg)
-    msg = _MU_TAB_RE.sub("    ", msg)
-    msg = _MU_BLANK_RE.sub(" ", msg)
+    msg = _MU_NEWLINE_RE.sub("|/", msg)
+    msg = _MU_TAB_RE.sub("|-", msg)
+    msg = _MU_BLANK_RE.sub("|_", msg)
     return msg
 
 def builder_notice(target, message):

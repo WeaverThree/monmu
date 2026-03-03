@@ -8,6 +8,8 @@ Commands describe the input the account can do to the game.
 from evennia.commands.command import Command as BaseCommand
 from evennia.commands.default.muxcommand import MuxCommand as BaseMuxCommand
 
+from world.utils import replace_mush_escapes
+
 def _process_post_messages(caller):
     """
     Sends all queued messages on caller to caller.
@@ -24,8 +26,13 @@ def _process_post_messages(caller):
 
 
 class MuxCommand(BaseMuxCommand):
+    def at_pre_cmd(self):
+        self.args = replace_mush_escapes(self.args)
+        super().at_pre_cmd()
+
     def at_post_cmd(self):
         _process_post_messages(self.caller)
+        super().at_post_cmd(self)
     
 
 class Command(BaseCommand):
@@ -37,10 +44,13 @@ class Command(BaseCommand):
     here. Without setting one, the parent's docstring will show (like now).
 
     """
+    def at_pre_cmd(self):
+        self.args = replace_mush_escapes(self.args)
+        super().at_pre_cmd()
 
     def at_post_cmd(self):
         _process_post_messages(self.caller)
-    
+        super().at_post_cmd(self)
 
     # Each Command class implements the following methods, called in this order
     # (only func() is actually required):
