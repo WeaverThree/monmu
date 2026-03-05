@@ -1,26 +1,22 @@
 r"""
 Evennia settings file.
 
-The available options are found in the default settings file found
-here:
+The available options are found in the default settings file found here:
 
 https://www.evennia.com/docs/latest/Setup/Settings-Default.html
 
 Remember:
 
-Don't copy more from the default file than you actually intend to
-change; this will make sure that you don't overload upstream updates
-unnecessarily.
+Don't copy more from the default file than you actually intend to change; this will make sure that you don't overload
+upstream updates unnecessarily.
 
-When changing a setting requiring a file system path (like
-path/to/actual/file.py), use GAME_DIR and EVENNIA_DIR to reference
-your game folder and the Evennia library folders respectively. Python
-paths (path.to.module) should be given relative to the game's root
-folder (typeclasses.foo) whereas paths within the Evennia library
-needs to be given explicitly (evennia.foo).
+When changing a setting requiring a file system path (like path/to/actual/file.py), use GAME_DIR and EVENNIA_DIR to
+reference your game folder and the Evennia library folders respectively. Python paths (path.to.module) should be given
+relative to the game's root folder (typeclasses.foo) whereas paths within the Evennia library needs to be given
+explicitly (evennia.foo).
 
-If you want to share your game dir, including its settings, you can
-put secret game- or server-specific settings in secret_settings.py.
+If you want to share your game dir, including its settings, you can put secret game- or server-specific settings in
+secret_settings.py.
 
 """
 
@@ -37,7 +33,20 @@ BASE_CHARACTER_TYPECLASS = "typeclasses.characters.PlayerCharacter"
 COMMAND_DEFAULT_CLASS = "commands.command.MuxCommand"
 
 
-WEBSERVER_ENABLED = False
+# Global scripts started here will be available through 'evennia.GLOBAL_SCRIPTS.key'. The scripts
+# will survive a reload and be recreated automatically if deleted. Each entry must have the script
+# keys, whereas all other fields in the specification are optional. If 'typeclass' is not given,
+# BASE_SCRIPT_TYPECLASS will be assumed.  Note that if you change typeclass for the same key, a new
+# Script will replace the old one on `evennia.GLOBAL_SCRIPTS`.
+GLOBAL_SCRIPTS = {
+    # 'key': {'typeclass': 'typeclass.path.here',
+    #         'repeats': -1, 'interval': 50, 'desc': 'Example script'},
+    'mondata': {'typeclass': 'typeclasses.scripts.mondata.MonData',}
+}
+
+
+
+WEBSERVER_ENABLED = True
 
 
 TIME_ZONE = "America/Los_Angeles"
@@ -57,19 +66,17 @@ MULTISESSION_MODE = 2
 
 
 
-# The mudinfo channel is a read-only channel used by Evennia to replay status
-# messages, connection info etc to staff. The superuser will automatically be
-# subscribed to this channel. If set to None, the channel is disabled and
-# status messages will only be logged (not recommended).
+# The mudinfo channel is a read-only channel used by Evennia to replay status messages, connection info etc to staff.
+# The superuser will automatically be subscribed to this channel. If set to None, the channel is disabled and status
+# messages will only be logged (not recommended).
 CHANNEL_MUDINFO = {
     "key": "MudInfo",
     "aliases": "",
     "desc": "Status log",
     "locks": "control:perm(Developer);listen:perm(Admin);send:none()",
 }
-# Optional channel (same form as CHANNEL_MUDINFO) that will receive connection
-# messages like ("<account> has (dis)connected"). While the MudInfo channel
-# will also receieve this info, this channel is meant for non-staffers. If
+# Optional channel (same form as CHANNEL_MUDINFO) that will receive connection messages like ("<account> has
+# (dis)connected"). While the MudInfo channel will also receieve this info, this channel is meant for non-staffers. If
 # None, this information will only be logged.
 CHANNEL_CONNECTINFO = {
     "key": "ConnectInfo",
@@ -77,12 +84,10 @@ CHANNEL_CONNECTINFO = {
     "desc": "Connection log",
     "locks": "control:perm(Developer);listen:all();send:none()",
 }
-# New accounts will auto-sub to the default channels given below (but they can
-# unsub at any time). Traditionally, at least 'public' should exist. Entries
-# will be (re)created on the next reload, but removing or updating a same-key
-# channel from this list will NOT automatically change/remove it in the game,
-# that needs to be done manually. Note: To create other, non-auto-subbed
-# channels, create them manually in server/conf/at_initial_setup.py.
+# New accounts will auto-sub to the default channels given below (but they can unsub at any time). Traditionally, at
+# least 'public' should exist. Entries will be (re)created on the next reload, but removing or updating a same-key
+# channel from this list will NOT automatically change/remove it in the game, that needs to be done manually. Note: To
+# create other, non-auto-subbed channels, create them manually in server/conf/at_initial_setup.py.
 DEFAULT_CHANNELS = [
     {
         "key": "Staff",

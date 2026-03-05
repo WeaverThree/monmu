@@ -19,6 +19,7 @@ from evennia import default_cmds
 from . import ooc
 from . import building_overrides
 from . import comms_override
+from . import mons
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -42,6 +43,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(building_overrides.CmdDestroy())
         self.add(comms_override.CmdChannel())
         self.add(comms_override.CmdPage())
+        self.add(mons.CmdMonTypes()) 
 
 
 
