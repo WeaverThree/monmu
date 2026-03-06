@@ -9,6 +9,8 @@ creation commands.
 """
 
 import time
+import random
+import math
 
 from django.db.models import Q 
 from django.conf import settings
@@ -62,6 +64,46 @@ class Character(ObjectParent, DefaultCharacter):
 
         return f"\n{header}\n{self.get_display_desc(looker, **kwargs)}"
     
+    def roll_ivs(self):
+        ivs = {}
+        for key in self.base_stats.keys():
+            ivs[key] = random.randint(0,31)
+        self.ivs = ivs
+    
+    def create_evs(self):
+        evs = {}
+        for key in self.base_stats.keys():
+            evs[key] = 0
+        self.evs = evs
+
+
+    def init_stats (self):
+        self.roll_ivs()
+        self.create_evs()
+        self.update_stats()
+    
+    def update_stats(self):
+        stats = {}
+        for stat in self.base_stats.keys():
+            if stat == "health":
+                topline = (2 * self.base_stats[stat] + self.ivs[stat] + math.floor(self.evs[stat] / 4)) * self.level
+                value = math.floor(topline / 100) + self.level + 10
+            else:
+                topline = (2 * self.base_stats[stat] + self.ivs[stat] + math.floor(self.evs[stat] / 4)) * self.level
+                value = math.floor(topline / 100) + 5
+
+            if stat == self.favoredstat:
+                value = math.floor(stat * 1.10)
+            elif stat == self.neglectedstat:
+                value = math.floor(stat * 0.90)
+            
+            stats[stat] = value
+        self.stats = stats
+
+
+
+        
+
     @property
     def is_idle(self):
         """
