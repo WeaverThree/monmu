@@ -4,7 +4,7 @@ import math
 
 from .command import MuxCommand, Command
 from evennia import GLOBAL_SCRIPTS
-from evennia.utils import evtable
+from evennia.utils import evtable, string_suggestions
 
 from world.monutils import type_vuln_table, display_full_mon_name, get_display_type
 
@@ -138,18 +138,43 @@ class CmdSetSpecies(MuxCommand):
         if not mons:
             subtypemsg = f" with subtype '{subtype}'" if subtype else ""
             formmsg = f" {'and' if subtypemsg else 'with'} form '{form}'" if form else ""
-            self.caller.msg(f"No mons found by the species name '{monname}'{subtypemsg}{formmsg}")
+
+            dexno = None
+            try:
+                dexno = int(monname)
+            except ValueError:
+                pass
+
+            if dexno is not None:
+                self.caller.msg(f"No mons found by the dex number '{dexno}'{subtypemsg}{formmsg}")
+            else:
+                self.caller.msg(f"No mons found by the species name '{monname}'{subtypemsg}{formmsg}")
+                suggestions = string_suggestions(monname, mondata.monnames)
+                self.caller.msg(f"Did you mean any of: {', '.join(suggestions)}")
             return
 
         if len(mons) == 1:
             mon = mons[0]
         else:
             out = ["Found multiple matches, please chose from:"]
-            for mon in mons:
-                out.append(f" - {get_display_type(mon)} #{mon['dexno']} {display_full_mon_name(mon)}")
-            out.append(f"Use setspecies {target} = (subtype,||subtype,form,){monname} to select. Use '-' for blank.")
-            self.caller.msg('\n'.join(out))
-            return
+            for idx, mon in enumerate(mons):
+                out.append(f" - {idx+1} - {get_display_type(mon)} #{mon['dexno']} {display_full_mon_name(mon)}")
+            out.append(f"Select [1-{len(mons)}]:")
+
+            answer = yield('\n'.join(out))
+
+            try:
+                answer = int(answer.strip())
+            except ValueError:
+                self.caller.msg("|xAborted.|n")
+                return
+    
+            if answer-1 >= 0 and answer-1 < len(mons):
+                mon = mons[answer-1]
+            else:
+                self.caller.msg("|xAborted.|n")
+                return
+            
 
         self.caller.msg(f"Selected {get_display_type(mon)} #{mon['dexno']} {display_full_mon_name(mon)}")
 

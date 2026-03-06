@@ -98,8 +98,11 @@ class MonData(Script):
     typelookup = NAttributeProperty({})
 
     mons = NAttributeProperty([])
+    monnames = NAttributeProperty([])
+    
     moves = NAttributeProperty({})
     natures = NAttributeProperty({})
+
 
     def search_mons(self, namenum, subtype="", form=""):
         candidates = []
@@ -214,7 +217,7 @@ class MonData(Script):
     def load_mon_list(self, csvdata):
         """csvdata -> self.mons"""
         
-        if self.mons:
+        if self.mons or self.monnames:
             logger.warn("load_mon_list called while mon list already loaded, ignoring!")
             return
 
@@ -258,6 +261,7 @@ class MonData(Script):
             }
             
             self.mons.append(newmon)
+            self.monnames.append(name)
 
 
     def load_move_list(self, csvdata):
