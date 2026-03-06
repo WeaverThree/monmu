@@ -53,8 +53,11 @@ Nature Name*, Favored Stat*, Neglected Stat*, Favored Flavor*, Disliked Flavor*
 
 import csv
 import os
+import time
 
 from evennia.utils import logger
+
+from evennia.typeclasses.attributes import NAttributeProperty
 
 _TYPE_MATRIX_FILE = "world/mondata/Master-Type-Matrix.csv"
 _MON_LIST_FILE = "world/mondata/Master-Mon-List.csv"
@@ -90,6 +93,14 @@ from . import Script
 class MonData(Script):
     key = 'mondata'
 
+    types = NAttributeProperty({})
+    typenames = NAttributeProperty([])
+    typelookup = NAttributeProperty({})
+
+    mons = NAttributeProperty([])
+    moves = NAttributeProperty({})
+    natures = NAttributeProperty({})
+
     def at_server_start(self):
         """ 
         Happens on both server start and reload.
@@ -97,17 +108,20 @@ class MonData(Script):
         We don't store any persistent data so we need to reload everything from disk each time.
         This also means that if you update the spreadsheets you can run reload to update the data.
         """
-
+        self.locks.add("examine:pperm(Developer)")
         self.load_data()
 
 
     def load_data(self):
-        """Loads all data files into object attributes.
+        """
+        Loads all data files into object attributes.
         
         This basically needs to happen before anyone tries to access anything on this object, and
         load_type_matrix needs to be done before everything else because tere are things that rely
         on the types existing. 
         """
+
+        testtime = time.time()
 
         if os.path.exists(_TYPE_MATRIX_FILE): 
             with open(_TYPE_MATRIX_FILE) as infile:
@@ -136,14 +150,16 @@ class MonData(Script):
         else:
             logger.log_warn(f"Using nature list fallback because no file at {_NATURE_LIST_FILE}.")
             self.load_nature_list(iter(_FALLBACK_NATURE_LIST))
+
+        logger.info(f"Loaded mon data in {(time.time() - testtime)*1000.0:0.2f}ms.")
         
 
     def load_type_matrix(self, csvdata):
         """csvdata -> self.{types,typenames,typelookup}"""
 
-        types = {}
-        typenames = []
-        typelookup = {}
+        if self.types or self.typenames or self.typelookup:
+            logger.warn("load_type_matrix called while type matrix already loaded, ignoring!")
+            return
 
         header = [cell.strip() for cell in next(csvdata)]
         if not (header[0] == '---' and header[1] == '--' and header[2] == '-', header[-1] == '----'):
@@ -152,37 +168,35 @@ class MonData(Script):
         for type in header[3:-1]:
             if type in ['-', '--', '---', '----']:
                 raise ValueError("Type matrix CSV header bad")
-            typenames.append(type)
+            self.typenames.append(type)
         
         curtype = 0
         for row in csvdata:
             row = [cell.strip() for cell in row]
             name, token, short = row[:3]
             color = row [-1]
-            if name != typenames[curtype]:
+            if name != self.typenames[curtype]:
                 raise ValueError("Type matrix types Don't match")
             curtype += 1
 
-            vs = {x:float(y) for x,y in zip(typenames, row[3:-1])}
+            vs = {x:float(y) for x,y in zip(self.typenames, row[3:-1])}
 
             newtype = {'name':name, 'token':token, 'short':short, 'color':color, 'vs':vs,
                        'colortoken':f"{color}{token:^6}|n", 'doubletoken':f"{color}{name.upper():^12}|n"}
-            types[name] = newtype
-            typelookup[name.lower()] = name
-            typelookup[token.lower()] = name
-            typelookup[short.lower()] = name
+            self.types[name] = newtype
+            self.typelookup[name.lower()] = name
+            self.typelookup[token.lower()] = name
+            self.typelookup[short.lower()] = name
 
-        if curtype != len(typenames):
+        if curtype != len(self.typenames):
             raise ValueError("Type matrix types Don't match")
-        
-        self.types = types
-        self.typenames = typenames
-        self.typelookup = typelookup
-
 
     def load_mon_list(self, csvdata):
         """csvdata -> self.mons"""
-        mons = []
+        
+        if self.mons:
+            logger.warn("load_mon_list called while mon list already loaded, ignoring!")
+            return
 
         for row in csvdata:
             row = [cell.strip() for cell in row]
@@ -195,9 +209,9 @@ class MonData(Script):
             if not type1:
                 raise ValueError(f"Bad mon data on row {row}")
             
-            if type1 not in self.typenames:
+            if type1 not in self.ndb.typenames:
                 raise ValueError(f"No such type '{type1}' on row {row}")
-            if type2 and type2 not in self.typenames:
+            if type2 and type2 not in self.ndb.typenames:
                 raise ValueError(f"No such type '{type2}' on row {row}")
 
 
@@ -223,14 +237,16 @@ class MonData(Script):
                 'base_stats': base_stats,
             }
             
-            mons.append(newmon)
-        
-        self.mons = mons
+            self.mons.append(newmon)
 
 
     def load_move_list(self, csvdata):
         """csvdata -> self.moves"""
-        moves = {}
+        
+        if self.moves:
+            logger.warn("load_move_list called when move list already loaded, ignoring!")
+            return
+
         for row in csvdata:
             row = [cell.strip() for cell in row]
             moveno = int(row[0])
@@ -263,19 +279,21 @@ class MonData(Script):
 
             if not all((moveno, name, movetype, category, uses)):
                 raise ValueError(f"Bad move data on row {row}")
-            if movetype not in self.typenames:
+            if movetype not in self.ndb.typenames:
                 raise ValueError(f"No such type '{movetype}' on row {row}")
             
-            moves[name] = {
+            self.moves[name] = {
                 'moveno':moveno, 'name':name, 'priority':priority, 'type':movetype, 'category':category,
                 'uses':uses, 'potentcy':potentcy, 'accuracy':accuracy, 'nonstandard':nonstandard,
             }
-        self.moves = moves
 
 
     def load_nature_list(self, csvdata):
         """csvdata -> self.natures"""
-        natures = {}
+
+        if self.natures:
+            logger.warn("load_nature_list called when nature list is already loaded, ignoring!")
+
         for row in csvdata:
             row = [cell.strip() for cell in row]
             name, favored_stat, neglected_stat, favored_flavor, disliked_flavor = row
@@ -283,11 +301,10 @@ class MonData(Script):
             if not all((name, favored_stat, neglected_stat, favored_flavor, disliked_flavor)):
                 raise ValueError(f"Bad nature data on row {row}")
             
-            natures[name] = {
+            self.natures[name] = {
                 'name':name, 'favored_stat':favored_stat, 'neglected_stat':neglected_stat,
                 'favored_flavor':favored_flavor, 'disliked_flavor': disliked_flavor,
             }
-        self.natures = natures
                     
 
         

@@ -37,11 +37,6 @@ I'm just making this public to make things easier.
     - Abilities
     - Pronouns
     - Orientation
-- Read Pokémon data from a CSV
-    - Couple of basic emergency failovers in case can't find CSV
-    - But don't want IP stuff in the repo
-- Nature matrix? Also CSV?
-- Type matrix (CSV?)
 - Building system for normal users
 
 
