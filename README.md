@@ -77,4 +77,27 @@ I'm just making this public to make things easier.
 - Player character death 
     - returned to home after time period with 1hp and 
 
+- Character change audit log
 
+
+- start in AUP room
+    - staff list command. shows offline staff, with tag about what they do
+    - can make npcs and puppets and stuff
+    - can't build, modify descs
+
+- must be builder to build. might be able to desc owned rooms but not build from them
+
+- refit helper to plot runner
+    - minor powers to make npcs
+
+- authorization keyring object
+- room claim system, lockable doors, auto updating exit names
+
+- ooc nexus
+    -master room not needed
+    -character home
+    -nexus room
+        -ic portal
+    -staff home
+    -jail
+    

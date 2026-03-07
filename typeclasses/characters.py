@@ -244,7 +244,7 @@ class PlayerCharacter(Character):
 
         channel = ChannelDB.objects.get_channel("ConnectInfo")
         if not channel or not (channel.access(self, "listen") and channel.connect(self)):
-            logger.log_err("New character '{self.key}' could not connect to ConnecInfo")
+            logger.log_err("New character '{self.key}' could not connect to ConnectInfo")
             
         for chan_info in settings.DEFAULT_CHANNELS:
             if chankey := chan_info.get("key"):
