@@ -9,6 +9,33 @@ from evennia.utils import evtable, string_suggestions
 
 from world.monutils import type_vuln_table, get_display_mon_name, get_display_mon_type, get_display_mon_banner
 
+_lookup_statlist = {
+    'hp': 'health',
+    'health': 'health',
+
+    'pa': 'physical attack',
+    'physatk': 'physical attack',
+    'physical attack': 'physical attack',
+
+    'sa': 'special attack',
+    'specatk': 'special attack',
+    'special attack': 'special attack',
+
+    'pd': 'physical defense',
+    'physdef': 'physical defense',
+    'physical defense': 'physical defense',
+
+    'sd': 'special defense',
+    'specdef': 'special defense',
+    'special defense': 'special defense', 
+
+    'sp': 'speed',
+    'spd': 'speed',
+    'speed': 'speed',
+}
+
+
+
 class CmdMonTypes(Command):
     """
     Without arguments, prints the full type effectiveness table.
@@ -99,27 +126,23 @@ class CmdMonTypes(Command):
 class CmdSetSpecies(MuxCommand):
     """
     Usage:
-        setspecies <target> = (subtype,||subtype,form,)<species name or dex number>
+        setspecies [target =] (subtype,||subtype,form,)<species name or dex number>
     """
     key = 'setspecies'
     aliases = ['setmon']
     locks = "cmd:all()"
     help_category = "Mons"
     
-    _usage = "Usage: setspecies <target> = (subtype,||subtype,form,)<species name or dex number>"
+    _usage = "Usage: setspecies [target =] (subtype,||subtype,form,)<species name or dex number>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
-
-        target = self.caller.search(self.lhs)
     
-        if not target:
-            self.caller.msg(self._usage)
-            return
-    
-        if not (target.access(self.caller, "control") or target.access(self.caller, "edit")):
-            self.msg(f"You don't have permission to work on {target.name}.")
-            return
+        if not self.rhs:
+            target = self.caller
+            self.rhslist = self.lhslist # no = so use everything as rhs
+        else:
+            target = self.caller.search(self.lhs)
 
         if len(self.rhslist) == 3:
             subtype, form, monname = self.rhslist
@@ -233,7 +256,7 @@ class CmdSetSpecies(MuxCommand):
         target.base_stats = mon['base_stats']
         target.ability = ability
 
-        target.level = 100
+        target.level = 50
         target.init_stats()
 
         self.caller.msg(f"{target.name} updated.")
@@ -242,34 +265,31 @@ class CmdSetSpecies(MuxCommand):
 class CmdSetNature(MuxCommand):
     """
     Usage: 
-        setnature <target> [= <nature>]
+        setnature [target =] [nature]
     """
     key = 'setnature'
     locks = "cmd:all()"
     help_category = "Mons"
 
-    _usage = "Usage: setnature <target> [= <nature>]"
+    _usage = "Usage: setnature [target =] [nature]"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
 
-        target = self.caller.search(self.lhs)
-    
-        if not target:
-            self.caller.msg(self._usage)
-            return
-    
-        if not (target.access(self.caller, "control") or target.access(self.caller, "edit")):
-            self.msg(f"You don't have permission to work on {target.name}.")
-            return
+        if not self.rhs and '=' not in self.raw:
+            target = self.caller
+            self.rhs = self.lhs # no = so use everything as rhs
+        else:
+            target = self.caller.search(self.lhs)
         
         rhs = self.rhs.strip() if self.rhs else ""
         
         if rhs:
             if rhs in mondata.natures:
-                nature = mondata.natures[rhs]
+                nature = rhs
             else:
                 self.caller.msg(f"Nature '{rhs}' does not exist.")
+                return
         else:
             choices = sorted(mondata.natures.keys())
 
@@ -316,6 +336,86 @@ class CmdSetNature(MuxCommand):
 
         self.caller.msg(f"{target.name} updated.")
 
+class CmdBuyIVs(MuxCommand):
+    """
+    Usage:
+        buyivs [target =] stat, tokens to spend
+    """
+    key = 'buyivs'
+    locks = "cmd:all()"
+    help_category = "Mons"
+
+    _usage = "Usage: buyivs [<target> =] stat,tokens to spend"
+
+    def func(self):
+    
+        if not self.rhs:
+            target = self.caller
+            self.rhslist = self.lhslist # no = so use everything as rhs
+        else:
+            target = self.caller.search(self.lhs)
+    
+        if not (target.access(self.caller, "control") or target.access(self.caller, "edit")):
+            self.caller.msg(f"You don't have permission to work on {target.name}.")
+            return
+        
+        remaining = target.ivtokens - target.ivtokens_spent
+        if not remaining:
+            self.caller.msg(f"{target.name} has no IV tokens to spend.")
+        
+        if len(self.rhslist) != 2:
+            self.caller.msg(self._usage)
+            return
+        
+        stat, amount = self.rhslist
+
+        if stat not in _lookup_statlist:
+            self.msg(f"'{stat}' is not a valid stat.")
+            return
+        
+        stat = _lookup_statlist[stat]
+        
+        try:
+            amount = int(amount)
+        except ValueError:
+            self.caller.msg(f"Tokens to spend must be a positive integer")
+            return
+        
+        if not 0 <= amount:
+            self.caller.msg(f"Tokens to spend must be a positive integer")
+            return
+        
+        amount = min(amount,remaining)
+        while amount and amount * 3 + target.ivs[stat] > 30:
+            amount -= 1
+        
+        if not amount:
+            self.caller.msg(f"{target}'s {stat} is already maxed out!")
+            return
+        
+        question = (
+            f"Spend {amount} of {target.name}'s {remaining} remaining IV tokens to raise "
+            f"{stat}'s IVs from {target.ivs[stat]} to {target.ivs[stat] + amount * 3}? [y/N]"
+        )
+
+        answer = yield question
+
+        if not answer.lower().startswith('y'):
+            self.caller.msg("|xAborted.|n")
+            return
+        
+        target.ivs[stat] += amount * 3
+        target.ivtokens_spent += amount
+        target.update_stats()
+        self.caller.msg(f"{target.name} updated.")
+
+
+
+
+        
+        
+
+
 
 class CmdRandMons(Command):
     """
@@ -348,7 +448,7 @@ class CmdRandMons(Command):
 
             num = f"{idx+1}" if count < 10 else f"{idx+1:2d}"
                 
-            self.caller.msg(f" - {num} - {get_display_type(mon)} #{mon['dexno']:<4d} {display_full_mon_name(mon)}")
+            self.caller.msg(f" - {num} - {get_display_mon_banner(mon)}")
             
 
 

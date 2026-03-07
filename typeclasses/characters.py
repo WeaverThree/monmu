@@ -12,8 +12,8 @@ import time
 import random
 import math
 
-from django.db.models import Q 
-from django.conf import settings
+from django.db.models import Q  # type: ignore
+from django.conf import settings # type: ignore
 
 from evennia.comms.models import ChannelDB
 from evennia.objects.objects import DefaultCharacter
@@ -26,10 +26,41 @@ from .objects import ObjectParent
 from world.utils import header_two_slot
 from world.monutils import get_display_mon_banner
 
+_IV_TOKEN_BUDGET = math.ceil((6 * 16) / 3)
+_MOVE_DELAY = 15
+_IDLE_TIME = 60*5
+
+_display_statname = {
+    'health': 'Health',
+    'physical attack': 'PhysAtk',
+    'special attack': 'SpecAtk',
+    'physical defense': 'PhysDef',
+    'special defense': 'SpecDef',
+    'speed': 'Speed',
+}
+
+_statcolor = {
+    'health': '69DC12',
+    'physical attack': 'EFCC18',
+    'special attack': '14C3F1',
+    'physical defense': 'E86412',
+    'special defense': '4A6ADF',
+    'speed': 'D51DAD',
+}
 
 
-MOVE_DELAY = 15
-IDLE_TIME = 60*5
+def _statline(statname, char):
+    stat = char.stats[statname]
+    iv = char.ivs[statname]
+    ev = char.evs[statname]
+    sep = ':'
+    if char.favored_stat.lower() == statname:
+        sep = '+'
+    elif char.neglected_stat.lower() == statname:
+        sep = '-'
+    return f"|#{_statcolor[statname]}{_display_statname[statname]:>7}{sep}|w{stat:3d}|x[{iv:2d}||{ev:3d}]|n"
+
+
 
 class Character(ObjectParent, DefaultCharacter):
     """
@@ -52,7 +83,14 @@ class Character(ObjectParent, DefaultCharacter):
     stats = AttributeProperty({})
     ivs = AttributeProperty({})
     evs = AttributeProperty({})
+    
     level = AttributeProperty(1)
+    
+    ivtokens = AttributeProperty(0)
+    ivtokens_spent = AttributeProperty(0)
+    evtokens = AttributeProperty(0)
+    evtokens_spent = AttributeProperty(0)
+
 
     def return_appearance(self, looker, **kwargs):
         
@@ -62,24 +100,46 @@ class Character(ObjectParent, DefaultCharacter):
             headercolor="|b"
         )
 
-        return f"\n{header}\n{self.get_display_desc(looker, **kwargs)}"
+        stat1 = f"{_statline('health',self)}{_statline('physical attack',self)}{_statline('special attack',self)}"
+        stat2 = f"{_statline('speed',self)}{_statline('physical defense',self)}{_statline('special defense',self)}"
+
+        stat1 += f"|b  Level:|n {self.level}"
+        stat2 += f"|b Nature:|n {self.nature}"
+
+        ivtokens_left = self.ivtokens - self.ivtokens_spent
+        evtokens_left = self.evtokens - self.evtokens_spent
+        
+        ivcolor = '|r' if ivtokens_left else '|n'
+        evcolor = '|r' if evtokens_left else '|n'
+
+        stat3 = f"|b{'IV Tokens:':>15}{ivcolor} {self.ivtokens - self.ivtokens_spent:2n} "
+        stat3 += f"|b{'EV Tokens:':>15}{evcolor} {self.evtokens - self.evtokens_spent:2n} "
+        stat3 += f"|b{"Ability:":>15}|n {self.ability}"
+
+
+        return f"\n{header}\n{stat1}\n{stat2}\n{stat3}\n{self.get_display_desc(looker, **kwargs)}"
     
-    def roll_ivs(self):
+
+    def reset_ivs(self):
         ivs = {}
         for key in self.base_stats.keys():
-            ivs[key] = random.randint(0,31)
+            ivs[key] = 0
         self.ivs = ivs
+        self.ivtokens = _IV_TOKEN_BUDGET
+        self.ivtokens_spent = 0
     
-    def create_evs(self):
+    def reset_evs(self):
         evs = {}
         for key in self.base_stats.keys():
             evs[key] = 0
         self.evs = evs
+        # Evtokens can only be removed or added by staff
+        self.evtokens_spent = 0
 
 
     def init_stats (self):
-        self.roll_ivs()
-        self.create_evs()
+        self.reset_ivs()
+        self.reset_evs()
         self.update_stats()
     
     def update_stats(self):
@@ -111,7 +171,7 @@ class Character(ObjectParent, DefaultCharacter):
         """
         if not self.has_account:
             return True
-        return self.idle_time > IDLE_TIME
+        return self.idle_time > _IDLE_TIME
     
     @property
     def is_comms_idle(self):
@@ -164,6 +224,9 @@ class PlayerCharacter(Character):
     characters that are controlled by people. 
     """
 
+    approved = AttributeProperty(False)
+
+
     @property
     def is_player_character(self):
         """Is this a player character. Better than using instanceof."""
@@ -210,11 +273,11 @@ class PlayerCharacter(Character):
     def at_post_move(self, src, **kwargs):
         active_players_in_room = [char 
                 for char in PlayerCharacter.objects.filter(Q(db_location=self.location) & ~ Q(db_key=self)) 
-                if char.idle_time and char.idle_time < IDLE_TIME]
+                if char.idle_time and char.idle_time < _IDLE_TIME]
         if active_players_in_room:
-            self.ndb.movelock = time.time() + MOVE_DELAY
+            self.ndb.movelock = time.time() + _MOVE_DELAY
             self.register_post_command_message(
-                "|MPlayer activity detected|n, locking movement for {} seconds.".format(MOVE_DELAY)
+                "|MPlayer activity detected|n, locking movement for {} seconds.".format(_MOVE_DELAY)
             )
         else:
             self.ndb.movelock = None;

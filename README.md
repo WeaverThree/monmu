@@ -17,7 +17,8 @@ I'm just making this public to make things easier.
     - Implement separate comms idle time perhaps
     - Restyle chan, chan/all
     - Restyle who
-    - ConnectInfo is leaking peoples IPs and shit
+    - track wordcount emitted into the world
+- ConnectInfo is leaking peoples IPs and shit
 - Character creation system
 - Stats.
     - Pokémon type
@@ -34,9 +35,46 @@ I'm just making this public to make things easier.
         - Move object?
     - IC Wordcount
     - Affiliation
+        - Faction (Guild, Rogue, Merc, Unaffiliated)
+        - Rank
+        - Subfaction
     - Abilities
     - Pronouns
     - Orientation
 - Building system for normal users
+- Dice roller
+- +ic +ooc
+- skill swapper object
+- rp vote system
+    - number of votes per day
+    - vote for someone once per day
+        - if they aren't idle
+    - gives passive xp gain
+    - vote values
+        -125 1st in a day
+        -150 2nd in a day
+        -150 3rd in a day
+        -150 4th in a day
+        etc
+    1 vote a day should be about a year and a half of real time, but being involved in a lot of big scenes should be more like 6 months.
+
+    2 votes a day every day for a week = two tokens - 1 token = 1000 points
+
+    delevling: remove 1 ev from random stat 6 times
+
+    follow command
+    find command
+    special abilities
+    
+
+
+
+
+
+- xp gain:
+
+
+- Player character death 
+    - returned to home after time period with 1hp and 
 
 
