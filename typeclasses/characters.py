@@ -15,11 +15,11 @@ import math
 from django.db.models import Q  # type: ignore
 from django.conf import settings # type: ignore
 
+from evennia import AttributeProperty
 from evennia.comms.models import ChannelDB
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils import logger
-from evennia import AttributeProperty
-
+from evennia.utils.ansi import ANSI_PARSER
 
 from .objects import ObjectParent
 
@@ -50,9 +50,9 @@ _statcolor = {
 
 
 def _statline(statname, char):
-    stat = char.stats[statname]
-    iv = char.ivs[statname]
-    ev = char.evs[statname]
+    stat = char.stats[statname] if char.stats else 0
+    iv = char.ivs[statname] if char.stats else 0
+    ev = char.evs[statname] if char.stats else 0
     sep = ':'
     if char.favored_stat.lower() == statname:
         sep = '+'
@@ -84,7 +84,7 @@ class Character(ObjectParent, DefaultCharacter):
     ivs = AttributeProperty({})
     evs = AttributeProperty({})
     
-    level = AttributeProperty(1)
+    level = AttributeProperty(50)
     
     ivtokens = AttributeProperty(0)
     ivtokens_spent = AttributeProperty(0)
@@ -92,13 +92,20 @@ class Character(ObjectParent, DefaultCharacter):
     evtokens_spent = AttributeProperty(0)
 
 
-    def return_appearance(self, looker, **kwargs):
+    def return_appearance(self, looker=None, **kwargs):
         
         header = header_two_slot(80,
             f"{self.get_display_name()}{self.get_extra_display_name_info(looker, **kwargs)}",
             f"{get_display_mon_banner(self)}",
             headercolor="|b"
         )
+
+        statblock = self.get_statblock(looker, **kwargs)
+
+        return f"\n{header}\n{statblock}\n{self.get_display_desc(looker, **kwargs)}"
+    
+
+    def get_statblock(self, looker=None, **kwargs):
 
         stat1 = f"{_statline('health',self)}{_statline('physical attack',self)}{_statline('special attack',self)}"
         stat2 = f"{_statline('speed',self)}{_statline('physical defense',self)}{_statline('special defense',self)}"
@@ -116,11 +123,11 @@ class Character(ObjectParent, DefaultCharacter):
         stat3 += f"|b{'EV Tokens:':>15}{evcolor} {self.evtokens - self.evtokens_spent:2n} "
         stat3 += f"|b{"Ability:":>15}|n {self.ability}"
 
-
-        return f"\n{header}\n{stat1}\n{stat2}\n{stat3}\n{self.get_display_desc(looker, **kwargs)}"
+        return '\n'.join((stat1, stat2, stat3))
     
 
     def reset_ivs(self):
+
         ivs = {}
         for key in self.base_stats.keys():
             ivs[key] = 0
@@ -129,6 +136,7 @@ class Character(ObjectParent, DefaultCharacter):
         self.ivtokens_spent = 0
     
     def reset_evs(self):
+
         evs = {}
         for key in self.base_stats.keys():
             evs[key] = 0
@@ -138,11 +146,14 @@ class Character(ObjectParent, DefaultCharacter):
 
 
     def init_stats (self):
+
         self.reset_ivs()
         self.reset_evs()
         self.update_stats()
     
+
     def update_stats(self):
+
         stats = {}
         for stat in self.base_stats.keys():
             if stat == "health":
@@ -161,8 +172,39 @@ class Character(ObjectParent, DefaultCharacter):
         self.stats = stats
 
 
+    def set_species(self, caller, mon, ability):
+
+        self.species = mon['name']
+        self.subtype = mon['subtype']
+        self.form = mon['form']
+        self.dexno = mon['dexno']
+        self.type1 = mon['type1']
+        self.type2 = mon['type2']
+        self.base_stats = mon['base_stats']
+        self.ability = ability
+
+        self.init_stats()
 
         
+    def set_nature(self, caller, nature):
+
+        favored = nature['favored_stat']
+        neglected = nature['neglected_stat']
+        if favored == neglected:
+            favored = ""
+            neglected = ""
+
+        self.nature = nature['name']
+        self.favored_stat = favored
+        self.neglected_stat = neglected
+        self.update_stats()
+        
+        
+    def spend_iv_tokens(self, caller, stat, amount):
+        
+        self.ivs[stat] += amount * 3
+        self.ivtokens_spent += amount
+        self.update_stats()
 
     @property
     def is_idle(self):
@@ -210,6 +252,8 @@ class Character(ObjectParent, DefaultCharacter):
             color = "|C" if self.is_comms_idle else "|c"
         elif self.account.permissions.check("Builder"):
             color = "|Y" if self.is_comms_idle else "|y"
+        elif self.account.permissions.check("Helper"):
+            color = "|B" if self.is_comms_idle else "|b"
         elif not self.is_comms_idle:
             color = "|g"
         else:
@@ -225,6 +269,58 @@ class PlayerCharacter(Character):
     """
 
     approved = AttributeProperty(False)
+    auditlog = AttributeProperty([])
+
+    
+    def logaudit(self, msg):
+        self.auditlog.append((time.time(),msg))
+
+        msg = ANSI_PARSER.strip_mxp(msg)
+        msg = ANSI_PARSER.parse_ansi(msg, strip_ansi=True)
+        logger.log_file(msg, "audit.log")
+        logger.log_info("Audit: " + msg)
+
+
+    def init_stats(self):
+        self.level = 50
+        super().init_stats()
+
+    def set_species(self, caller, mon, ability):
+        super().set_species(caller, mon, ability)
+
+        msg = (
+            f"{caller.get_display_name(looker=self)} updated {self.get_display_name(looker=self)}'s "
+            f"species to {get_display_mon_banner(mon)} with an ability of {ability}."
+        )
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+            
+    
+    def set_nature(self, caller, nature):
+        super().set_nature(caller, nature)
+
+        msg = (
+            f"{caller.get_display_name(looker=self)} updated {self.get_display_name(looker=self)}'s "
+            f"nature to {nature['name']}."
+        )
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+
+    def spend_iv_tokens(self, caller, stat, amount):
+        super().spend_iv_tokens(caller, stat, amount)
+
+        msg = (
+            f"{caller.get_display_name(looker=self)} spent {amount} of {self.get_display_name(looker=self)}'s "
+            f"IV tokens to raise {stat} IVs from {self.ivs[stat] - amount * 3} to {self.ivs[stat]}. "
+            f"{self.ivtokens - self.ivtokens_spent} IV tokens remain."
+        )
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+
+
 
 
     @property
@@ -237,6 +333,9 @@ class PlayerCharacter(Character):
         Setup default channels and messaging permissions that now live on characters instead of
         accounts.
         """
+        
+        self.logaudit(f"{self.name} created.")
+
         # For the character-focused channel system
         self.locks.add("msg:all()")
 

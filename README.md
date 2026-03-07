@@ -41,7 +41,6 @@ I'm just making this public to make things easier.
     - Abilities
     - Pronouns
     - Orientation
-- Building system for normal users
 - Dice roller
 - +ic +ooc
 - skill swapper object
@@ -65,10 +64,10 @@ I'm just making this public to make things easier.
     follow command
     find command
     special abilities
-    
 
-
-
+- Prevent certain commands from working on player characters to prevent accidents or abuse:
+    @wipe
+    @force
 
 
 - xp gain:
@@ -77,7 +76,6 @@ I'm just making this public to make things easier.
 - Player character death 
     - returned to home after time period with 1hp and 
 
-- Character change audit log
 
 
 - start in AUP room

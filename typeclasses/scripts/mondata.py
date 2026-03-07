@@ -103,6 +103,31 @@ class MonData(Script):
     moves = NAttributeProperty({})
     natures = NAttributeProperty({})
 
+    lookup_statlist = {
+    'hp': 'health',
+    'health': 'health',
+
+    'pa': 'physical attack',
+    'physatk': 'physical attack',
+    'physical attack': 'physical attack',
+
+    'sa': 'special attack',
+    'specatk': 'special attack',
+    'special attack': 'special attack',
+
+    'pd': 'physical defense',
+    'physdef': 'physical defense',
+    'physical defense': 'physical defense',
+
+    'sd': 'special defense',
+    'specdef': 'special defense',
+    'special defense': 'special defense', 
+
+    'sp': 'speed',
+    'spd': 'speed',
+    'speed': 'speed',
+    }
+
 
     def search_mons(self, namenum, subtype="", form=""):
         candidates = []

@@ -20,6 +20,7 @@ from . import ooc
 from . import building_overrides
 from . import comms_override
 from . import mons
+from . import chargen_admin
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -44,10 +45,12 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(comms_override.CmdChannel())
         self.add(comms_override.CmdPage())
         self.add(mons.CmdMonTypes()) 
-        self.add(mons.CmdSetSpecies())
         self.add(mons.CmdRandMons())
-        self.add(mons.CmdSetNature())
-        self.add(mons.CmdBuyIVs())
+        self.add(chargen_admin.CmdAdminSetSpecies())
+        self.add(chargen_admin.CmdAdminSetNature())
+        self.add(chargen_admin.CmdAdminBuyIVs())
+        self.add(chargen_admin.CmdAuditLog())
+
 
 
 

@@ -84,7 +84,7 @@ def type_vuln_table(type1, type2="", show_header=True, show_nochange=True):
 def get_display_mon_name(mon):
     from typeclasses.characters import Character
     if isinstance(mon, Character):
-        name = mon.species
+        name = mon.species if mon.species else "????"
         subtype = mon.subtype
         form = mon.form
     else:
@@ -106,6 +106,8 @@ def get_display_mon_type(mon):
         type2 = mon['type2']
     
     types = GLOBAL_SCRIPTS.mondata.types
+    if not type1:
+        return f"|r{'????':^12}|n"
     if not type2:
         return types[type1]['doubletoken']
     else:
@@ -115,6 +117,6 @@ def get_display_mon_type(mon):
 def get_display_mon_banner(mon):
     from typeclasses.characters import Character
     if isinstance(mon, Character):
-        return f"{get_display_mon_type(mon)} #{mon.dexno} {get_display_mon_name(mon)}"
+        return f"{get_display_mon_type(mon)} #{mon.dexno if mon.dexno else '?'} {get_display_mon_name(mon)}"
     else:
         return f"{get_display_mon_type(mon)} #{mon['dexno']} {get_display_mon_name(mon)}"
