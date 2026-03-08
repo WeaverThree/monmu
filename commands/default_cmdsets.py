@@ -19,6 +19,7 @@ from evennia import default_cmds
 from . import admin_overrides
 from . import building_overrides
 from . import comms_overrides
+from . import general_overrides
 from . import mons
 from . import chargen_admin
 from . import userlisting
@@ -48,6 +49,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(building_overrides.CmdWipe())
         self.add(comms_overrides.CmdChannel())
         self.add(comms_overrides.CmdPage())
+        self.add(general_overrides.CmdPose())
         self.add(mons.CmdMonTypes()) 
         self.add(mons.CmdRandMons())
         self.add(chargen_admin.CmdAdminSetSpecies())
