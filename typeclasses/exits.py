@@ -16,14 +16,25 @@ class Exit(ObjectParent, DefaultExit):
     """
     Exits are connectors between rooms. Exits are normal Objects except
     they defines the `destination` property and overrides some hooks
-    and methods to represent the exits. 
+    and methods to represent the exits.
     """
+
     def get_display_name(self, looker, **kwargs):
+        """
+        Returns a fancy name based on who's looking at this object. In particular, will grey out and
+        cross out destinations that the user does not meet lock on. This doesn't guarentee they're
+        allowed to go that way, of course, but it should usually be the way we block access I think.
+        """
         name = self.name
         aliases = self.aliases.all()
         if aliases:
             best_alias = min(aliases, key=len)
             if len(best_alias) < len(name):
-                name = "|g[{}]|n {}".format(best_alias.upper(), name)
+                if self.access(looker, "traverse"):
+                    name = f"|g[{best_alias.upper()}]|n {name}"
+                else:
+                    name = f"|x[{best_alias.upper()}]|n |s{name}|n"
+        elif not self.access(looker, "traverse"):
+            name = f"|s{name}|n"
         return name
             
