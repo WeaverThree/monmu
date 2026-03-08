@@ -44,6 +44,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(ooc.CmdOOC())
         self.add(building_overrides.CmdDesc())
         self.add(building_overrides.CmdDestroy())
+        self.add(building_overrides.CmdWipe())
         self.add(comms_override.CmdChannel())
         self.add(comms_override.CmdPage())
         self.add(mons.CmdMonTypes()) 

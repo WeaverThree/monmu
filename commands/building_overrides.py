@@ -1,6 +1,7 @@
 
 from django.conf import settings # type: ignore
 
+from evennia.commands.default.building import ObjManipCommand
 from evennia.utils import create, funcparser, logger, search, utils
 from evennia.utils.ansi import raw as ansi_raw
 from evennia.utils.dbserialize import deserialize
@@ -260,3 +261,59 @@ class CmdDestroy(COMMAND_DEFAULT_CLASS):
 
             if results:
                 caller.msg("".join(results).strip())
+
+
+class CmdWipe(ObjManipCommand):
+    """
+    clear all attributes from an object
+
+    Usage:
+      wipe <object>[/<attr>[/<attr>...]]
+
+    Example:
+      wipe box
+      wipe box/colour
+
+    Wipes all of an object's attributes, or optionally only those
+    matching the given attribute-wildcard search string.
+    """
+
+    key = "@wipe"
+    locks = "cmd:perm(wipe) or perm(Builder)"
+    help_category = "Building"
+
+    def func(self):
+        """
+        inp is the dict produced in ObjManipCommand.parse()
+        """
+
+        caller = self.caller
+
+        if not self.args:
+            caller.msg("Usage: wipe <object>[/<attr>/<attr>...]")
+            return
+        
+
+        # get the attributes set by our custom parser
+        objname = self.lhs_objattr[0]["name"]
+        attrs = self.lhs_objattr[0]["attrs"]
+
+        obj = caller.search(objname)
+
+        if not obj:
+            return
+        if isinstance(obj, PlayerCharacter):
+            caller.msg("This command is disabled on player characters for safety.")
+            return
+        if not (obj.access(caller, "control") or obj.access(caller, "edit")):
+            caller.msg("You are not allowed to do that.")
+            return
+        if not attrs:
+            # wipe everything
+            obj.attributes.clear()
+            string = f"Wiped all attributes on {obj.name}."
+        else:
+            for attrname in attrs:
+                obj.attributes.remove(attrname)
+            string = f"Wiped attributes {','.join(attrs)} on {obj.name}."
+        caller.msg(string)
