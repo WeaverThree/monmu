@@ -18,12 +18,12 @@ from django.conf import settings # type: ignore
 from evennia import AttributeProperty
 from evennia.comms.models import ChannelDB
 from evennia.objects.objects import DefaultCharacter
-from evennia.utils import logger
+from evennia.utils import logger, display_len
 from evennia.utils.ansi import ANSI_PARSER
 
 from .objects import ObjectParent
 
-from world.utils import header_two_slot
+from world.utils import header_two_slot, anyone_notice
 from world.monutils import get_display_mon_banner, moves_table
 
 _IV_TOKEN_BUDGET = math.ceil((6 * 16) / 3)
@@ -104,7 +104,13 @@ class Character(ObjectParent, DefaultCharacter):
 
         statblock = self.get_statblock(looker, **kwargs)
 
-        return f"\n{header}\n{statblock}\n{self.get_display_desc(looker, **kwargs)}"
+        desc = self.get_display_desc(looker, **kwargs)
+
+        if looker == self:
+            if display_len(desc) < self.DESC_LENGTH_REQ:
+                anyone_notice(looker, "Your description should be longer.")
+
+        return f"\n{header}\n{statblock}\n{desc}"
     
 
     def get_statblock(self, looker=None, **kwargs):
@@ -325,6 +331,7 @@ class PlayerCharacter(Character):
     whostatus = AttributeProperty("")
     stafftag = AttributeProperty("")
 
+    DESC_LENGTH_REQ = 500
     
     def logaudit(self, msg):
         self.auditlog.append((time.time(),msg))

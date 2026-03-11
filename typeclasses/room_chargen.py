@@ -23,6 +23,7 @@ class ChargenRoomCmdset(evennia.CmdSet):
 
 class ChargenRoom(Room):
 
+    DESC_LENGTH_REQ = 0
 
     def at_object_creation(self):
 

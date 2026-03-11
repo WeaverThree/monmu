@@ -68,8 +68,6 @@ I'm just making this public to make things easier.
 - unlogged characters go home after 24 hours
 - rooms that you can home in
 
-- bitch at you if room desc is too short
-
 - start in AUP room
 
 
@@ -112,3 +110,7 @@ I'm just making this public to make things easier.
     - Rank based rooms for guild?
     - Shop / business ownership, for rogues?
     
+
+- Max ability len = 16 characters
+- Max move len = 27 characters "Soul-Stealing 7-Star Strike", a Z-move
+- Max move len w/o specials = 16 characters "Parabolic Charge"

@@ -21,6 +21,8 @@ class Room(ObjectParent, DefaultRoom):
     properties and methods available on all Objects.
     """
 
+    DESC_LENGTH_REQ = 500
+
     def at_pre_object_receive(self, arriving_object, source_location, **kwargs):
         if not arriving_object.approved and not arriving_object.account.permissions.check('Builder'):
             if isinstance(arriving_object, PlayerCharacter):

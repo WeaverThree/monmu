@@ -18,15 +18,21 @@ def replace_mush_escapes(msg):
     msg = _MU_BLANK_RE.sub("|_", msg)
     return msg
 
+
+def anyone_notice(target, message):
+    """Error message for anyone to see. Registers for display after command."""
+    target.register_post_command_message(f"|[r|X Reminder |n|r {message}|n")
+
 def builder_notice(target, message):
     """Error message for builder+ accounts to see. Registers for display after command."""
     if target.permissions.check("Builder"):
-        target.register_post_command_message("|[r|XBuilder Notice|n|r {}|n".format(message))
+        target.register_post_command_message(f"|[r|X Builder Notice |n|r {message}|n")
 
 def dev_notice(target, message):
     """Error message for devloper accounts to see. Registers for display after command."""
     if target.permissions.check("Developer"):
-        target.register_post_command_message("|[r|XDev Notice|n|r {}|n".format(message))
+        target.register_post_command_message(f"|[r|X Dev Notice |n|r {message}|n")
+
 
 def header_two_slot(width, slot1, slot2=None, headercolor="|R", color1="|w", color2="|w"):
     """

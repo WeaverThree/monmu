@@ -17,7 +17,7 @@ import inflect
 from django.utils.translation import gettext as _
 
 from evennia.objects.objects import DefaultObject
-from evennia.utils import evtable, ansi, group_objects_by_key_and_desc, make_iter
+from evennia.utils import evtable, ansi, group_objects_by_key_and_desc, make_iter, display_len
 
 from world.utils import dev_notice, builder_notice, replace_mush_escapes, header_two_slot
 
@@ -43,6 +43,8 @@ class ObjectParent:
     This is a mixin that can be used to override *all* entities inheriting at
     some distance from DefaultObject (Objects, Exits, Characters and Rooms).
     """
+
+    DESC_LENGTH_REQ = 0
 
     def register_post_command_message(self, message):
         """Register a message for display after the current command. Forwards to the object's account."""
@@ -156,6 +158,9 @@ class ObjectParent:
         extra_name_info = self.get_extra_display_name_info(looker, **kwargs),
         desc = self.get_display_desc(looker, **kwargs),
         
+        if display_len(desc) < self.DESC_LENGTH_REQ:
+            builder_notice(looker, "This room should have a longer desc.")
+
         from .rooms import Room
 
         if isinstance(self, Room): # Only warn about zones if it's actually a room we're in
