@@ -102,6 +102,7 @@ class MonData(Script):
     
     moves = NAttributeProperty({})
     movenames = NAttributeProperty(set())
+    movelookup = NAttributeProperty({})
     natures = NAttributeProperty({})
 
     lookup_statlist = {
@@ -293,7 +294,7 @@ class MonData(Script):
     def load_move_list(self, csvdata):
         """csvdata -> self.moves"""
         
-        if self.moves:
+        if self.moves or self.movelookup or self.movenames:
             logger.warn("load_move_list called when move list already loaded, ignoring!")
             return
 
@@ -350,6 +351,7 @@ class MonData(Script):
                 'category_token': cattoken,
             }
             self.movenames.add(name)
+            self.movelookup[name.lower()] = name
 
 
     def load_nature_list(self, csvdata):

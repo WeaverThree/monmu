@@ -130,10 +130,17 @@ def moves_table(movelist, usedlist=None):
     Returns a table of nicely formated moves. If usedlist is provided, it will show remaining moves.
 
     Usedlist should be a list of integers corresponding to the listed moves. 
+    We will also accept a movelist that is a dictionary {movename: used, ...}
     """
-        
-    mondata = GLOBAL_SCRIPTS.mondata
 
+    mondata = GLOBAL_SCRIPTS.mondata
+    
+    try:
+        # See if the format given is a dict of {movename: used, ...}
+        movelist, usedlist = zip(*movelist.items())
+    except AttributeError:
+        pass
+        
     names = []
     movetypes = []
     categories = []
@@ -145,6 +152,10 @@ def moves_table(movelist, usedlist=None):
     usedlist = usedlist if usedlist else []
 
     for move, used in itertools.zip_longest(movelist, usedlist):
+
+        if isinstance(move, str):
+            move = mondata.moves[move]
+
         names.append(move['name'])
         movetypes.append(mondata.types[move['type']]['colortoken'])
         categories.append(move['category_token'])

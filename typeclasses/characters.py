@@ -24,7 +24,7 @@ from evennia.utils.ansi import ANSI_PARSER
 from .objects import ObjectParent
 
 from world.utils import header_two_slot
-from world.monutils import get_display_mon_banner
+from world.monutils import get_display_mon_banner, moves_table
 
 _IV_TOKEN_BUDGET = math.ceil((6 * 16) / 3)
 _MOVE_DELAY = 15
@@ -76,8 +76,7 @@ class Character(ObjectParent, DefaultCharacter):
     ability = AttributeProperty("")
     base_stats = AttributeProperty({})
     nature = AttributeProperty("")
-    moves = AttributeProperty("")
-
+    
     favored_stat = AttributeProperty("")
     neglected_stat = AttributeProperty("")
     stats = AttributeProperty({})
@@ -90,6 +89,9 @@ class Character(ObjectParent, DefaultCharacter):
     ivtokens_spent = AttributeProperty(0)
     evtokens = AttributeProperty(0)
     evtokens_spent = AttributeProperty(0)
+
+    moves_known = AttributeProperty(set())
+    moves_equipped = AttributeProperty({})
 
 
     def return_appearance(self, looker=None, **kwargs):
@@ -123,10 +125,25 @@ class Character(ObjectParent, DefaultCharacter):
         stat3 += f"|b{'EV Tokens:':>15}{evcolor} {self.evtokens - self.evtokens_spent:2n} "
         stat3 += f"|b{"Ability:":>15}|n {self.ability}"
 
-        return '\n'.join((stat1, stat2, stat3))
-    
+        out = [stat1, stat2, stat3]
 
-    def reset_ivs(self):
+        if self.moves_equipped:
+            out.append(f"|w{'- - - Moves Equipped - - -':^80}|n")
+            out.append(str(moves_table(self.moves_equipped)))
+
+        
+        moves_known_filtered = self.moves_known.copy()
+        for move in self.moves_equipped:
+            moves_known_filtered.remove(move)
+        
+        if moves_known_filtered:
+            out.append(f"|w{'- - - Moves Known - - -':^80}|n")
+            out.append(str(moves_table(moves_known_filtered)))
+    
+        return '\n'.join(out)
+
+
+    def reset_ivs(self, caller=None):
 
         ivs = {}
         for key in self.base_stats.keys():
@@ -135,7 +152,7 @@ class Character(ObjectParent, DefaultCharacter):
         self.ivtokens = _IV_TOKEN_BUDGET
         self.ivtokens_spent = 0
     
-    def reset_evs(self):
+    def reset_evs(self, caller=None):
 
         evs = {}
         for key in self.base_stats.keys():
@@ -205,6 +222,37 @@ class Character(ObjectParent, DefaultCharacter):
         self.ivs[stat] += amount * 3
         self.ivtokens_spent += amount
         self.update_stats()
+
+    
+
+    def equip_move(self, caller, movename):
+        """ Assumes caller is doing all the vetting """
+        
+        self.moves_equipped[movename] = 0
+
+
+    def unequip_move(self, caller, movename):
+        """ Assumes caller is doing all the vetting """
+
+        # But still don't remove something that's not there
+        if movename in self.moves_equipped:
+            del self.moves_equipped[movename]
+
+
+    def learn_move(self, caller, movename):
+        """ Assumes caller is doing all the vetting """
+        
+        self.moves_known.add(movename)
+
+
+    def forget_move(self, caller, movename):
+        """ Assumes caller is doing all the vetting """
+
+        # But still don't remove something that's not there
+        if movename in self.moves_known:
+            self.moves_known.remove(movename)
+
+
 
     @property
     def is_idle(self):
@@ -287,9 +335,19 @@ class PlayerCharacter(Character):
         logger.log_info("Audit: " + msg)
 
 
+    def reset_ivs(self, caller=None):
+        super().reset_ivs(caller)
+        if caller:
+            msg = f"{caller.get_display_name(self)} reset IVs on {self.get_display_name(self)}."
+        
+            self.logaudit(msg)
+            if caller != self:
+                self.msg(msg)
+
     def init_stats(self):
         self.level = 50
         super().init_stats()
+
 
     def set_species(self, caller, mon, ability):
         super().set_species(caller, mon, ability)
@@ -314,6 +372,7 @@ class PlayerCharacter(Character):
         if caller != self:
             self.msg(msg)
 
+
     def spend_iv_tokens(self, caller, stat, amount):
         super().spend_iv_tokens(caller, stat, amount)
 
@@ -327,6 +386,44 @@ class PlayerCharacter(Character):
             self.msg(msg)
 
 
+    def equip_move(self, caller, movename):
+        super().equip_move(caller, movename)
+
+        msg = f"{caller.get_display_name(self)} made {self.get_display_name(self)} equip move {movename}."
+        
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+
+
+    def unequip_move(self, caller, movename):
+        super().unequip_move(caller, movename)
+
+        msg = f"{caller.get_display_name(self)} made {self.get_display_name(self)} unequip move {movename}."
+        
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+
+    
+    def learn_move(self, caller, movename):
+        super().learn_move(caller, movename)
+                
+        msg = f"{caller.get_display_name(self)} made {self.get_display_name(self)} learn move {movename}."
+        
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+
+    
+    def forget_move(self, caller, movename):
+        super().forget_move(caller, movename)
+        
+        msg = f"{caller.get_display_name(self)} made {self.get_display_name(self)} forget move {movename}."
+        
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
 
 
     @property

@@ -10,9 +10,14 @@ class ChargenRoomCmdset(evennia.CmdSet):
     
     def at_cmdset_creation(self):
         
-        self.add(chargen.CmdSetSpecies())
-        self.add(chargen.CmdSetNature())
-        self.add(chargen.CmdBuyIVs())
+        self.add(chargen.CmdChargenSetSpecies())
+        self.add(chargen.CmdChargenSetNature())
+        self.add(chargen.CmdChargenBuyIVs())
+        self.add(chargen.CmdChargenResetIVs())
+        self.add(chargen.CmdChargenEquipMove())
+        self.add(chargen.CmdChargenUnequipMove())
+        self.add(chargen.CmdChargenLearnMove())
+        self.add(chargen.CmdChargenForgetMove())
 
 
 

@@ -9,7 +9,7 @@ from typeclasses.characters import Character, PlayerCharacter
 
 from world.monutils import get_display_mon_banner
 
-
+from .chargen import _MAX_EQUIPPED_MOVES
 
 class CmdAdminSetSpecies(MuxCommand):
     """
@@ -351,4 +351,276 @@ class CmdAuditLog(MuxCommand):
         for timestamp, msg in slice:
             timestamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(timestamp))
             self.caller.msg(f" |B{timestamp}|n - {msg}")
+
+
+class CmdAdminResetIVs(MuxCommand):
+    """
+    Usage:
+        @resetivs <target>
+    """
+    key = '@resetivs'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
+
+    _usage = "Usage: @resetivs <target>"
+
+    def func(self):
+
+        if not self.args.strip():
+            self.caller.msg(self._usage)
+            return
+
+        target = self.caller.search(self.args.strip(), exact=True, typeclass=[Character, PlayerCharacter])
+
+        if not target:
+            return
+
+        if not any(target.ivs.values()):
+            self.caller.msg(f"{target.get_display_name(self.caller)} has no ivs bought, no need to reset.")
+            return
+
+        target.reset_ivs(self.caller)
+
+        self.caller.msg(f"{target.get_display_name(self.caller)} updated.")
+
+
+class CmdAdminEquipMove(MuxCommand):
+    """
+    Usage:
+        @equipmove <target> = <move name>
+    """
+    key = '@equipmove'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
+
+    _usage = "Usage: @equipmove <target> = <move name>"
+
+    def func(self):
+
+        mondata = GLOBAL_SCRIPTS.mondata
+
+        if not self.lhs:
+            self.caller.msg(self._usage)
+            return
+
+        target = self.caller.search(self.lhs, exact=True, typeclass=[Character, PlayerCharacter])
+
+        if len(target.moves_equipped) >= _MAX_EQUIPPED_MOVES:
+            self.caller.msg(
+                f"{target.get_display_name(self.caller)} already has "
+                f"{len(target.moves_equipped)} out of {_MAX_EQUIPPED_MOVES} moves equipped."
+            )
+            return
+
+        if not target:
+            return
+
+        movename = self.rhs
+
+        if not movename:
+            self.caller.msg(self._usage)
+            return
         
+        movename = movename.lower()
+
+        if movename in mondata.movelookup:
+            actual_movename = mondata.movelookup[movename]
+        else:
+            suggestions = string_suggestions(movename, mondata.movenames)
+            self.caller.msg(f"Could not find a move named '{movename}', did you mean one of {suggestions}?")
+            return
+        
+        if actual_movename in target.moves_equipped:
+            self.caller.msg(f"{target.get_display_name(self.caller)} already has {actual_movename} equipped.")
+            return
+
+        if not actual_movename in target.moves_known:
+            if target.player_mode == "CG":
+                target.learn_move(self.caller, actual_movename)
+                self.caller.msg(
+                    f"This is chargen, so {target.get_display_name(self.caller)} is "
+                    f"also learning {actual_movename}."
+                )
+            else:
+                self.caller.msg(f"{target.get_display_name(self.caller)} doesn't know the move {actual_movename}.")
+                return
+        
+        target.equip_move(self.caller, actual_movename)
+        self.caller.msg(f"{target.get_display_name(self.caller)} equipped {actual_movename}.")
+
+
+class CmdAdminUnequipMove(MuxCommand):
+    """
+    Unequips move or shows equipped moves if called without move name.
+
+    Usage:
+        @unequipmove <target> [= move name]
+    """
+    key = '@unequipmove'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
+
+    _usage = "Usage: @unequipmove <target> [= move name]"
+
+    def func(self):
+
+        mondata = GLOBAL_SCRIPTS.mondata
+
+        if not self.lhs:
+            self.caller.msg(self._usage)
+            return
+
+        target = self.caller.search(self.lhs, exact=True, typeclass=[Character, PlayerCharacter])
+
+        if not target:
+            return
+
+        if not target.moves_equipped:
+            self.caller.msg(f"No moves equipped by {target.get_display_name(self.caller)}.")
+            return
+
+        movename = self.rhs
+
+        if not movename:
+            self.caller.msg(
+                f"{target.get_display_name(self.caller)} has these moves equipped: "
+                f"{', '.join(sorted(target.moves_equipped.keys()))}."
+            )
+            return
+        
+        movename = movename.lower()
+
+        if movename in mondata.movelookup:
+            actual_movename = mondata.movelookup[movename]
+        else:
+            suggestions = string_suggestions(movename, mondata.movenames)
+            self.caller.msg(
+                f"Could not find a move named '{movename}'. "
+                f"{target.get_display_name(self.caller)} has these moves equipped: "
+                f"{', '.join(sorted(target.moves_equipped.keys()))}."
+            )
+            return
+        
+        if actual_movename not in target.moves_equipped:
+            
+            self.caller.msg(
+                f"{target.get_display_name(self.caller)} doesn't have {actual_movename} equipped. "
+                f"{target.get_display_name(self.caller)} has these moves equipped: "
+                f"{', '.join(sorted(target.moves_equipped.keys()))}."
+            )
+            return
+
+        target.unequip_move(self.caller, actual_movename)
+        self.caller.msg(f"{target.get_display_name(self.caller)} unequipped {actual_movename}.")
+
+
+class CmdAdminLearnMove(MuxCommand):
+    """
+    Usage:
+        @learnmove <target> = <move name>
+    """
+    key = '@learnmove'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
+
+    _usage = "Usage: @learnmove <target> = <move name>"
+
+    def func(self):
+    
+        mondata = GLOBAL_SCRIPTS.mondata
+
+        if not self.lhs:
+            self.caller.msg(self._usage)
+            return
+
+        target = self.caller.search(self.lhs, exact=True, typeclass=[Character, PlayerCharacter])
+
+        if not target:
+            return
+        
+        movename = self.rhs
+
+        if not movename:
+            self.caller.msg(self._usage)
+            return
+        
+        movename = movename.lower()
+
+        if movename in mondata.movelookup:
+            actual_movename = mondata.movelookup[movename]
+        else:
+            suggestions = string_suggestions(movename, mondata.movenames)
+            self.caller.msg(f"Could not find a move named '{movename}', did you mean one of {suggestions}?")
+            return
+        
+        if actual_movename in target.moves_known:
+            self.caller.msg(f"{target.get_display.name(self.caller)} doesn't know {actual_movename}")
+            return
+
+        target.learn_move(self.caller, actual_movename)
+        self.caller.msg(f"{target.get_display_name(self.caller)} learned {actual_movename}.")
+
+
+class CmdAdminForgetMove(MuxCommand):
+    """
+    Forget move or show known moves if called without move name.
+    
+    Usage:
+        @forgetmove <target> [= move name]
+    """
+    key = '@forgetmove'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
+
+    _usage = "Usage: @forgetmove <target> [= move name]"
+
+    def func(self):
+
+        mondata = GLOBAL_SCRIPTS.mondata
+
+        if not self.lhs:
+            self.caller.msg(self._usage)
+            return
+        
+        target = self.caller.search(self.lhs, exact=True, typeclass=[Character, PlayerCharacter])
+
+        if not target:
+            return
+        
+        if not target.moves_known:
+            self.caller.msg(f"No moves known by {target.get_display_name(self.caller)}.")
+            return
+
+        movename = self.rhs
+
+        if not movename:
+            self.caller.msg(
+                f"Moves {target.get_display_name(self.caller)} knows are: "
+                f"{', '.join(sorted(target.moves_known))}."
+            )
+            return
+        
+        movename = movename.lower()
+
+        if movename in mondata.movelookup:
+            actual_movename = mondata.movelookup[movename]
+        else:
+            self.caller.msg(
+                f"Could not find a move named '{movename}'. "
+                f"Moves {target.get_display_name(self.caller)} knows are: {', '.join(sorted(target.moves_known))}."
+            )
+            return
+        
+        if actual_movename not in target.moves_known:
+            self.caller.msg(
+                f"{target.get_display_name(self.caller)} doesn't know {actual_movename}. "
+                f"Moves {target.get_display_name(self.caller)} knows are: {', '.join(sorted(target.moves_known))}."
+            )
+            return
+        
+        if actual_movename in target.moves_equipped:
+            target.unequip_move(self.caller, actual_movename)
+            self.caller.msg(f"{target.get_display_name(self.caller)} unequips {actual_movename} to forget it.")
+
+        target.forget_move(self.caller, actual_movename)
+        self.caller.msg(f"{target.get_display_name(self.caller)} forgot {actual_movename}.")
