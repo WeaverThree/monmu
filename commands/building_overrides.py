@@ -39,7 +39,7 @@ class CmdDesc(COMMAND_DEFAULT_CLASS):
     describe an object or the current room.
 
     Usage:
-      desc <obj> = <description>
+      @desc <obj> = <description>
 
     Switches:
       edit - Open up a line editor for more advanced editing.
@@ -83,7 +83,7 @@ class CmdDesc(COMMAND_DEFAULT_CLASS):
 
         caller = self.caller
         if not self.args and "edit" not in self.switches:
-            caller.msg("Usage: desc <obj> = <description>")
+            caller.msg("Usage: @desc <obj> = <description>")
             return
 
         if "edit" in self.switches:
@@ -97,7 +97,7 @@ class CmdDesc(COMMAND_DEFAULT_CLASS):
                 return
             desc = self.rhs or ""
         else:
-            caller.msg("Usage: desc <obj> = <description>")
+            caller.msg("Usage: @desc <obj> = <description>")
             return
         
         if obj.access(self.caller, "control") or obj.access(self.caller, "edit"):
@@ -306,6 +306,7 @@ class CmdWipe(ObjManipCommand):
                 obj.attributes.remove(attrname)
             string = f"Wiped attributes {','.join(attrs)} on {obj.name}."
         caller.msg(string)
+
 
 class CmdUnLink(CmdLink):
     """

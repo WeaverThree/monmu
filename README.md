@@ -30,7 +30,7 @@ I'm just making this public to make things easier.
     - Abilities
     - Pronouns
     - Orientation
-- Dice roller
+    - Player
 - +ic +ooc
 - skill swapper object
 
@@ -94,7 +94,7 @@ I'm just making this public to make things easier.
 
 - Issue with the table used in InventoryCmd. I think it's because a single character is colored at
   the start of the line in the table its using. I worked around this by putting item quantities in
-  parens for now.
+  parens for now. . . . Same problem happens with EvTable. I got around it by using an ASCII Null \000
 
 - Better exceptions for reading csv files in mondata?
 
@@ -114,3 +114,5 @@ I'm just making this public to make things easier.
 - Max ability len = 16 characters
 - Max move len = 27 characters "Soul-Stealing 7-Star Strike", a Z-move
 - Max move len w/o specials = 16 characters "Parabolic Charge"
+
+- Help command isn't working with +commands
