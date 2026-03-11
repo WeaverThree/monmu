@@ -45,6 +45,7 @@ class CmdWho(MuxCommand):
         durations = []
         idles = []
         locations = []
+        modes = []
         statuses = []
         cmds = []
         protocols = []
@@ -56,6 +57,7 @@ class CmdWho(MuxCommand):
 
             session_account = session.get_account()
             puppet = session.get_puppet()
+
             name = (
                 session.get_puppet().get_display_name(self.caller) if session.get_puppet() 
                 else f"|[R|X{session.account.name}|n"
@@ -65,6 +67,7 @@ class CmdWho(MuxCommand):
             durations.append(utils.time_format(time.time() - session.conn_time, 1))
             idles.append(utils.time_format(time.time() - session.cmd_last_visible, 0))
             locations.append(puppet.location.key if puppet and puppet.location else "|[R|X---|n")
+            modes.append(puppet.player_mode)
             statuses.append(utils.crop(puppet.whostatus,50,"…") if puppet else "")
             cmds.append(session.cmd_total)
             protocols.append(session.protocol_key)
@@ -74,32 +77,34 @@ class CmdWho(MuxCommand):
         if show_session_data:
             # privileged info
             header = (
-                "|wName",
-                "|wOn for",
-                "|wIdle",
-                "|wLocation",
-                "|wStatus",
-                "|wCmds",
-                "|wProtocol",
-                "|wHost",
+                "|wName|n",
+                "|wOn for|n",
+                "|wIdle|n",
+                "|wLocation|n",
+                "|wMode|n",
+                "|wStatus|n",
+                "|wCmds|n",
+                "|wProtocol|n",
+                "|wHost|n",
             )
 
             table = evtable.EvTable(
-                *header, table=(names,durations,idles,locations,statuses,cmds,protocols,hosts),
+                *header, table=(names,durations,idles,locations,modes,statuses,cmds,protocols,hosts),
                 border_width=0,                              
             )
 
         else:
             header = (
-                "|wName",
-                "|wOn for",
-                "|wIdle",
-                "|wLocation",
-                "|wStatus",
+                "|wName|n",
+                "|wOn for|n",
+                "|wIdle|n",
+                "|wLocation|n",
+                "|wMode|n",
+                "|wStatus|n",
             )
 
             table = evtable.EvTable(
-                *header, table=(names,durations,idles,locations,statuses),
+                *header, table=(names,durations,idles,locations,modes,statuses),
                 border_width=0,                                  
             )
 

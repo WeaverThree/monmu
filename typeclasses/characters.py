@@ -266,9 +266,13 @@ class PlayerCharacter(Character):
     """
     This Character is for accounts to connect to. It adds functionality that only matters for
     characters that are controlled by people. 
+
+    Player_mode should be one of AUP (not accepted rules yet), OOC, IC, CG (chargen), or DOWN
     """
 
+    accepted_rules = AttributeProperty(False)
     approved = AttributeProperty(False)
+    player_mode = AttributeProperty("AUP")
     auditlog = AttributeProperty([])
     whostatus = AttributeProperty("")
     stafftag = AttributeProperty("")

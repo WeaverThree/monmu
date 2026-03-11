@@ -8,6 +8,7 @@ Rooms are simple containers that has no location of their own.
 from evennia.objects.objects import DefaultRoom
 
 from .objects import ObjectParent
+from .characters import PlayerCharacter
 
 class Room(ObjectParent, DefaultRoom):
     """
@@ -20,4 +21,27 @@ class Room(ObjectParent, DefaultRoom):
     properties and methods available on all Objects.
     """
 
+    def at_pre_object_receive(self, arriving_object, source_location, **kwargs):
+        if not arriving_object.approved and not arriving_object.account.permissions.check('Builder'):
+            if isinstance(arriving_object, PlayerCharacter):
+                zone = self.tags.get(category="Zone", return_list=True)
+                if zone and zone[0] != 'ooc':
+                    arriving_object.msg(
+                        "You're not approved for IC access yet. "
+                        "Please complete chargen and then ask staff for assistance."
+                    )
+                    return False
         
+        return True
+
+    
+    def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
+
+        if isinstance(moved_obj, PlayerCharacter):
+            if moved_obj.player_mode != "DOWN":
+                zone = self.tags.get(category="Zone", return_list=True)
+                if zone and zone[0] != 'ooc' and not moved_obj.account.permissions.check('Builder'):
+                    moved_obj.player_mode = "IC"
+                else:
+                    moved_obj.player_mode = "OOC"
+            
