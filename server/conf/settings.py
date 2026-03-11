@@ -47,6 +47,8 @@ GLOBAL_SCRIPTS = {
 
 
 WEBSERVER_ENABLED = True
+NEW_ACCOUNT_REGISTRATION_ENABLED = False
+REGISTRATION_PASSTOKEN = None # Please put me in secret_settings.py - string with no spaces
 
 
 TIME_ZONE = "America/Los_Angeles"

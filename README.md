@@ -22,8 +22,6 @@ I'm just making this public to make things easier.
 
 - Stats.
     - EVs
-    - Known moves
-    - Equipped moves
     - IC Wordcount
     - Affiliation
         - Faction (Guild, Rogue, Merc, Unaffiliated)

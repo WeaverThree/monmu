@@ -31,7 +31,8 @@ CONNECTION_SCREEN = f"""
  If you have an existing account, connect to it by typing:
       |wconnect <username> <password>|n
  If you need to create an account, type (without the <>'s):
-      |wcreate <username> <password>|n
+      |wcreate <username> <password> [registration passtoken]|n
 
+ No spaces allowed in username or in password.
  Enter |whelp|n for more info. |wlook|n will re-show this screen.
 |R--------------------------------------------------------------|n"""

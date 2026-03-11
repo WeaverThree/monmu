@@ -21,6 +21,7 @@ from . import comms_overrides
 from . import general_overrides
 from . import help_overrides
 from . import system_overrides
+from . import unloggedin_overrides
 from . import mons
 from . import chargen_admin
 from . import userlisting
@@ -160,6 +161,8 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(unloggedin_overrides.CmdUnconnectedCreate())
+
 
 
 class SessionCmdSet(default_cmds.SessionCmdSet):
