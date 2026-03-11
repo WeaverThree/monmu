@@ -26,6 +26,7 @@ from . import mons
 from . import chargen_admin
 from . import userlisting
 from . import ooc
+from . import building
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -106,6 +107,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(userlisting.CmdStatus())
         self.add(userlisting.CmdStaffInfo())
         self.add(ooc.CmdOOC())
+        self.add(building.CmdZone())
 
 
 
