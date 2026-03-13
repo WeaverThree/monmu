@@ -114,5 +114,3 @@ I'm just making this public to make things easier.
 - Max ability len = 16 characters
 - Max move len = 27 characters "Soul-Stealing 7-Star Strike", a Z-move
 - Max move len w/o specials = 16 characters "Parabolic Charge"
-
-- Help command isn't working with +commands

@@ -87,6 +87,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(general_overrides.CmdGet())
         self.add(general_overrides.CmdDrop())
         self.add(general_overrides.CmdGive())
+        self.add(help_overrides.CmdHelp())
         self.add(help_overrides.CmdSetHelp())
         self.add(system_overrides.CmdAbout())
         self.add(system_overrides.CmdTime())
