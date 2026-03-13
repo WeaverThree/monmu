@@ -34,8 +34,8 @@ class ChargenRoom(Room):
     
     def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
         super().at_object_receive(moved_obj, source_location, move_type, **kwargs)
-        if isinstance(moved_obj, PlayerCharacter):
-            if moved_obj.player_mode != "DOWN":
+        if moved_obj.is_typeclass(PlayerCharacter):
+            if moved_obj.player_mode not in ("DOWN", "JAIL"):
                 moved_obj.player_mode = "CG"
 
 

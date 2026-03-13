@@ -163,7 +163,7 @@ class ObjectParent:
 
         from .rooms import Room
 
-        if isinstance(self, Room): # Only warn about zones if it's actually a room we're in
+        if self.is_typeclass(Room): # Only warn about zones if it's actually a room we're in
             zone = self.tags.get(category="Zone", return_list=True)
             if len(zone) == 0:
                 builder_notice(looker, "You should zone this room.")
@@ -189,9 +189,9 @@ class ObjectParent:
         other_things = []
         for obj in sorted(things, key=lambda x: x.name.lower()):
             name = obj.get_display_name(looker, **kwargs)
-            if isinstance(obj, Feature):
+            if obj.is_typeclass(Feature):
                 feature_names.append(name)
-            elif isinstance(obj, Interactable):
+            elif obj.is_typeclass(Interactable):
                 interactable_names.append(name)
             else:
                 other_things.append(obj)

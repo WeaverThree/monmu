@@ -84,7 +84,10 @@ def type_vuln_table(type1, type2="", show_header=True, show_nochange=True):
 
 
 def get_display_mon_name(mon):
+    
     from typeclasses.characters import Character
+    
+    # We're distingushing betweend dicts and characters here so can't use is_typeclass
     if isinstance(mon, Character):
         name = mon.species if mon.species else "????"
         subtype = mon.subtype
@@ -100,7 +103,10 @@ def get_display_mon_name(mon):
 
 
 def get_display_mon_type(mon):
+
     from typeclasses.characters import Character
+
+    # We're distingushing betweend dicts and characters here so can't use is_typeclass
     if isinstance(mon, Character):
         type1 = mon.type1
         type2 = mon.type2
@@ -118,7 +124,10 @@ def get_display_mon_type(mon):
     
 
 def get_display_mon_banner(mon):
+
     from typeclasses.characters import Character
+
+    # We're distingushing betweend dicts and characters here so can't use is_typeclass
     if isinstance(mon, Character):
         return f"{get_display_mon_type(mon)} #{mon.dexno if mon.dexno else '?'} {get_display_mon_name(mon)}"
     else:

@@ -41,7 +41,7 @@ class CmdForce(MuxCommand):
         targ = self.caller.search(self.lhs)
         if not targ:
             return
-        if isinstance(targ, PlayerCharacter):
+        if targ.is_typeclass(PlayerCharacter):
             self.msg("Forcing player characters to execute commands is disabled as it's rude.")
             return
         if not targ.access(self.caller, self.perm_used):

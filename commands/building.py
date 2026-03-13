@@ -47,7 +47,7 @@ class CmdZone(Command):
             )
             return
         
-        if not isinstance(target, Room):
+        if not target.is_typeclass(Room):
             self.caller.msg("You're not in any kind of room. This command only works on rooms. Please come again.")
             return
 
@@ -92,7 +92,7 @@ class CmdSetSpecialRoom(Command):
         objs = evennia.search_tag(category="SpecialRoom")
         for obj in objs:
             tags = obj.tags.get(category="SpecialRoom", return_list=True)
-            if not isinstance(obj, Room):
+            if not obj.is_typeclass(Room):
                 caller.msg(
                     f"Found non-room object {obj.get_display_name()} with SpecialRoom tags "
                     f"{', '.join(tags)}, removing them."

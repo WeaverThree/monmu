@@ -141,7 +141,7 @@ class CmdAdminSetSpecies(MuxCommand):
             
             self.caller.msg(f"{ability} selected.")
     
-        if isinstance(target, PlayerCharacter) and target.species:
+        if target.is_typeclass(PlayerCharacter) and target.species:
             out = (
                 f"{target.get_display_name(looker=self.caller)} is a player character that already has a species "
                 f"set.\n|RProceeding will reset their IV and EV expendatures to zero. |rAre you sure?|n [y/N]")

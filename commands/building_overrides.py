@@ -155,7 +155,7 @@ class CmdDestroy(COMMAND_DEFAULT_CLASS):
                 string = f"\nObject {obj.db_key} was already deleted."
             else:
                 objname = obj.name
-                if isinstance(obj,PlayerCharacter): # TODO: Probably not a good way... -WVR
+                if obj.is_typeclass(PlayerCharacter):
                     return(f"\n{objname}: |rCannot delete player characters.|n "
                            "This would break the account the character is attached to. "
                            "Please contact a developer if this deletion is required."
@@ -291,7 +291,7 @@ class CmdWipe(ObjManipCommand):
 
         if not obj:
             return
-        if isinstance(obj, PlayerCharacter):
+        if obj.is_typeclass(PlayerCharacter):
             caller.msg("This command is disabled on player characters for safety.")
             return
         if not (obj.access(caller, "control") or obj.access(caller, "edit")):
