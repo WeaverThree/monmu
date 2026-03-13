@@ -553,6 +553,10 @@ class PlayerCharacter(Character):
 
 
     def at_pre_move(self, dest, move_type=None, **kwargs):
+        if not dest.is_typeclass("typeclasses.rooms.Room"):
+            self.msg("Can't enter an object that is not a room (for now).")
+            return False
+        
         if move_type == "traverse":
             now = time.time()
             if self.ndb.movelock and self.ndb.movelock > now:
