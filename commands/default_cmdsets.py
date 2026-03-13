@@ -25,7 +25,7 @@ from . import unloggedin_overrides
 from . import mons
 from . import chargen_admin
 from . import userlisting
-from . import ooc
+from . import general
 from . import building
 from . import dice
 
@@ -108,10 +108,11 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(userlisting.CmdStaff())
         self.add(userlisting.CmdStatus())
         self.add(userlisting.CmdStaffInfo())
-        self.add(ooc.CmdOOC())
         self.add(building.CmdZone())
         self.add(building.CmdSetSpecialRoom())
         self.add(dice.CmdDice())
+        self.add(general.CmdOOC())
+        self.add(general.CmdSpoof())
 
 
 
