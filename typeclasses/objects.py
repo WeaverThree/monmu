@@ -163,6 +163,7 @@ class ObjectParent:
 
     def get_room_style_appearance(self, looker, **kwargs):
         """Return a big fancy room view with columns for stuff in the room."""
+
         if not looker:
             return
         
@@ -232,7 +233,7 @@ class ObjectParent:
         looktable.reformat_column(1,width=25)
         looktable.reformat_column(2,width=30)
 
-        tmp_last_talk_time = "Last Talk: " + time_format(time.time() - self.last_ic_talk_time_loc)
+        tmp_last_talk_time = "(TMP) Last Talk: " + time_format(time.time() - self.last_ic_talk_time_loc)
         tmp_last_talk_time += f" Wordcount here: {self.ic_wordcount_loc}"
 
         return f"\n{header}\n{tmp_last_talk_time}\n{desc[0]}{feature_line}\n\n{looktable}\n"
