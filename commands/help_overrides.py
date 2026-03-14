@@ -489,7 +489,7 @@ class CmdHelp(MuxCommand):
         match, suggestions = None, None
         
         # WVR - Hack to make +commands show up by escaping the +
-        query = f"\{query}" if query.startswith('+') else query
+        query = f"\\{query}" if query.startswith('+') else query
 
         base_query = strip_prefix(query)
         for match_query in (query, f"{query}*"):
