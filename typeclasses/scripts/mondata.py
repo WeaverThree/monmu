@@ -66,9 +66,9 @@ _NATURE_LIST_FILE = "world/mondata/Master-Nature-List.csv"
 
 _FALLBACK_TYPE_MATRIX = [
     ["---","--","-","Fire","Water","Grass","----"],
-    ["Fire","FIRE","Fr",1.0,0.5,2.0,"|[#E62829|w"],
-    ["Water","WATR","Wa",2.0,1.0,0.5,"|[#2980EF|w"],
-    ["Grass","GRAS","Gs",0.5,2.0,1.0,"|[#3FA129|w"],
+    ["Fire","FIRE","Fr","1.0","0.5","2.0","|[#E62829|w"],
+    ["Water","WATR","Wa","2.0","1.0","0.5","|[#2980EF|w"],
+    ["Grass","GRAS","Gs","0.5","2.0","1.0","|[#3FA129|w"],
 ]
 
 _FALLBACK_MON_LIST = [
