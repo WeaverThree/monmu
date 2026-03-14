@@ -7,6 +7,55 @@ from evennia.utils import utils
 from world.utils import get_wordcount, split_on_all_newlines
 
 
+
+class CmdSay(MuxCommand):
+    """
+    speak as your character
+
+    Usage:
+      say <message>
+
+    Talk to those in your current location.
+    """
+
+    key = "say"
+    aliases = ['"', "'"]
+    locks = "cmd:all()"
+
+    # don't require a space after `say/'/"`
+    arg_regex = None
+
+    def func(self):
+        """Run the say command"""
+
+        caller = self.caller
+
+        if not self.args:
+            caller.msg("Say what?")
+            return
+        
+        location = caller.location
+        if not location:
+            caller.msg("|rYou don't seem to have a location. Contact staff.|n")
+            return
+        
+        if not location.can_talk:
+            caller.msg("|mYou can't talk here.|n")
+            return
+
+        speech = self.args
+
+        # Calling the at_pre_say hook on the character
+        speech = caller.at_pre_say(speech)
+
+        # If speech is empty, stop here
+        if not speech:
+            return
+
+        # Call the at_post_say hook on the character
+        caller.at_say(speech, msg_self=True)
+
+
 class CmdPose(MuxCommand):
     """
     strike a pose
@@ -47,30 +96,41 @@ class CmdPose(MuxCommand):
 
 
     def func(self):
-        """Hook function"""
+
         if not self.args:
             self.msg("Do something, not nothing.")
-        else:
-            msg = "{sender}" + self.args
+            return
+        
+        msg = "{sender}" + self.args
+        caller = self.caller
 
-            paragraphs = split_on_all_newlines(msg)
-            out = [paragraphs[0]]
+        location = caller.location
+        if not location:
+            caller.msg("|rYou don't seem to have a location. Contact staff.|n")
+            return
+        
+        if not location.can_talk:
+            caller.msg("|mYou can't talk here.|n")
+            return
 
-            for paragraph in paragraphs[1:]:
-                if paragraph:
-                    paragraph += " ({sender})"
-                out.append(paragraph)
+        paragraphs = split_on_all_newlines(msg)
+        out = [paragraphs[0]]
 
-            self.caller.location.msg_contents(
-                text=('\n'.join(out), self.args, {"type": "pose"}),
-                mapping={'sender':self.caller}, from_obj=self.caller
-            )
-            wordcount = get_wordcount(self.args)
-            self.caller.location.last_ic_talk_time_loc = time.time()
-            self.caller.location.ic_wordcount_loc += wordcount
-            if self.caller.location.is_ic_room:
-                self.caller.last_ic_talk_time = time.time()
-                self.caller.ic_wordcount += wordcount
+        for paragraph in paragraphs[1:]:
+            if paragraph:
+                paragraph += " ({sender})"
+            out.append(paragraph)
+
+        location.msg_contents(
+            text=('\n'.join(out), self.args, {"type": "pose"}),
+            mapping={'sender':self.caller}, from_obj=self.caller
+        )
+        wordcount = get_wordcount(self.args)
+        location.last_ic_talk_time_loc = time.time()
+        location.ic_wordcount_loc += wordcount
+        if self.caller.location.is_ic_room:
+            caller.last_ic_talk_time = time.time()
+            caller.ic_wordcount += wordcount
 
             
 

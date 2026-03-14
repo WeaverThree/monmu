@@ -80,6 +80,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(comms_overrides.CmdIRC2Chan())
         self.add(comms_overrides.CmdIRCStatus())
         self.add(comms_overrides.CmdRSS2Chan())
+        self.add(general_overrides.CmdSay())
         self.add(general_overrides.CmdPose())
         self.add(general_overrides.CmdHome())
         self.add(general_overrides.CmdLook())

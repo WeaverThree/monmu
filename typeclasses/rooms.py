@@ -56,4 +56,33 @@ class Room(ObjectParent, DefaultRoom):
                     if moved_obj.player_mode != "OOC":
                         moved_obj.msg("|mLeaving IC grid, enetring OOC mode.|n")
                         moved_obj.player_mode = "OOC"
-            
+
+
+class SuperDarkRoom(Room):
+    """
+    This is a room in which you can't see anything, hear anything, receive any messages from inside
+    the room, etc. It's goign to be used for the chargen room and the AUP room. It should be just
+    like you're in a room by yourself when you're in here.
+    """
+
+    @property
+    def can_talk(self):
+        return False
+
+    def get_room_inventory(self, looker, kwargs):
+        """Only admin can see what's in here"""
+        if looker.permissions.check("Builder"):
+            table = super().get_room_inventory(looker, kwargs)
+            return f"|[c|X Notice |n|c Only ADMIN+ can see the contents of this room:|n\n{table}"
+        else:
+            return ""
+        
+    def at_pre_object_receive(self, arriving_object, source_location, move_type="", **kwargs):
+        """Can't drop anything in a super dark room."""
+        if move_type == "drop":
+            return False
+        return super().at_pre_object_receive(arriving_object, source_location, move_type=move_type, **kwargs)
+    
+    def msg_contents(self, text=None, exclude=None, from_obj=None, mapping=None, raise_funcparse_errors=False, **kwargs):
+        """Nothing gets emitted here..."""
+        return

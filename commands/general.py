@@ -28,9 +28,19 @@ class CmdOOC(Command):
     def func(self):
 
         args = str(self.args.strip())
+        caller = self.caller
         
         if not args:
             self.caller.msg(self._usage)
+            return
+    
+        location = caller.location
+        if not location:
+            caller.msg("|rYou don't seem to have a location. Contact staff.|n")
+            return
+        
+        if not location.can_talk:
+            caller.msg("|mYou can't talk here.|n")
             return
 
         out = ["|Y<OOC>|n {sender}"]
@@ -44,7 +54,7 @@ class CmdOOC(Command):
         else:
             out.append(f' says, "{args}"')
 
-        self.caller.location.msg_contents(''.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
+        location.msg_contents(''.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
 
 
 class CmdSpoof(Command):
@@ -68,11 +78,21 @@ class CmdSpoof(Command):
     def func(self):
 
         args = self.args.strip()
+        caller = self.caller
         
         if not args:
             self.caller.msg(self._usage)
             return
         
+        location = caller.location
+        if not location:
+            caller.msg("|rYou don't seem to have a location. Contact staff.|n")
+            return
+        
+        if not location.can_talk:
+            caller.msg("|mYou can't talk here.|n")
+            return
+
         out = []
         paragraphs = split_on_all_newlines(args)
 
@@ -82,12 +102,12 @@ class CmdSpoof(Command):
 
             out.append(paragraph)
 
-        self.caller.location.msg_contents('\n'.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
+        location.msg_contents('\n'.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
 
         wordcount = get_wordcount(args)
 
-        self.caller.location.last_ic_talk_time_loc = time.time()
-        self.caller.location.ic_wordcount_loc += wordcount
+        location.last_ic_talk_time_loc = time.time()
+        location.ic_wordcount_loc += wordcount
         if self.caller.location.is_ic_room:
-            self.caller.last_ic_talk_time = time.time()
-            self.caller.ic_wordcount += wordcount
+            caller.last_ic_talk_time = time.time()
+            caller.ic_wordcount += wordcount

@@ -51,6 +51,9 @@ class ObjectParent:
 
     DESC_LENGTH_REQ = 0
 
+    @property
+    def can_talk(self):
+        return True
 
     @property
     def is_ic_room(self):
@@ -186,6 +189,22 @@ class ObjectParent:
         else:
             zone = "Somewhere Strange"
 
+        looktable = self.get_room_inventory(looker, kwargs)
+ 
+        # For reasons entirely unclear to me, roomname, extra_name_info, and desc need to be
+        # subscripted here...
+
+        header = header_two_slot(80, roomname[0] + extra_name_info[0], zone)
+
+        lasttime = time_format(time.time() - self.last_ic_talk_time_loc, 0) if self.last_ic_talk_time_loc else "Never"
+        tmp_last_talk_time = f"(TMP) Last Talk: {lasttime} Wordcount here: {self.ic_wordcount_loc}"
+
+        return f"\n{header}\n{tmp_last_talk_time}\n{desc[0]}\n\n{looktable}{'\n' if looktable else ''}"
+
+
+    def get_room_inventory(self, looker, kwargs):
+        """Return all of the formatted text about items in a room."""
+
         characters = sorted(self.contents_get(content_type="character"), key = lambda x: x.name.lower())
         char_names = []
         for char in characters:
@@ -202,27 +221,21 @@ class ObjectParent:
             
         things = self.filter_visible(self.contents_get(content_type="object"), looker, **kwargs)
         
-        feature_names = []
         interactable_names = []
         other_things = []
         for obj in sorted(things, key=lambda x: x.name.lower()):
             name = obj.get_display_name(looker, **kwargs)
-            if obj.is_typeclass(Feature):
-                feature_names.append(name)
-            elif obj.is_typeclass(Interactable):
+            if obj.is_typeclass(Interactable):
                 interactable_names.append(name)
             else:
                 other_things.append(obj)
 
         thing_names = [name for name,_,_ in group_objects_by_key_and_desc(other_things, looker)]
 
-        feature_line = f"\n|X|[xFeatures:|n {', '.join(sorted(feature_names))}." if feature_names else ""
-
         exits = self.filter_visible(self.contents_get(content_type="exit"), looker, **kwargs)
         exit_names = [exit.get_display_name(looker, **kwargs) for exit in exits]
         exit_names.sort(key=_exit_name_sort_key)
         
-        header = header_two_slot(80, roomname[0] + extra_name_info[0], zone)
         
         looktable = evtable.EvTable("|c-People-|n","|c-Things-|n","|c-Exits-|n",
                 table=(char_names, sorted(interactable_names) + sorted(thing_names), exit_names),
@@ -233,10 +246,7 @@ class ObjectParent:
         looktable.reformat_column(1,width=25)
         looktable.reformat_column(2,width=30)
 
-        tmp_last_talk_time = "(TMP) Last Talk: " + time_format(time.time() - self.last_ic_talk_time_loc)
-        tmp_last_talk_time += f" Wordcount here: {self.ic_wordcount_loc}"
-
-        return f"\n{header}\n{tmp_last_talk_time}\n{desc[0]}{feature_line}\n\n{looktable}\n"
+        return looktable
     
 
     def at_say(
@@ -412,15 +422,6 @@ class Interactable(Object):
 
     PLURALIZE = False
 
-    def get_display_name(self, looker, **kwargs):
+    def color_name(self, name, looker, **kwargs):
         """Takes display name and colors it"""
-        return f"|G{self.name}|n"
-
-class Feature(Object):
-    """
-    Something that decorates a place. The idea is to make these invisible and key them off
-    highlighted words in the room description so that they don't take up any description space.
-    That's why they show up so prominently in the room view when not inivisible. 
-    """
-    
-    PLURALIZE = False
+        return f"|G{name}|n"

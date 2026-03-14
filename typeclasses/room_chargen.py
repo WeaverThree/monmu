@@ -1,7 +1,7 @@
 
 import evennia
 
-from .rooms import Room
+from .rooms import Room, SuperDarkRoom
 from .characters import PlayerCharacter
 from commands import chargen
 
@@ -21,7 +21,7 @@ class ChargenRoomCmdset(evennia.CmdSet):
 
 
 
-class ChargenRoom(Room):
+class ChargenRoom(SuperDarkRoom):
 
     DESC_LENGTH_REQ = 0
 
