@@ -68,14 +68,15 @@ I'm just making this public to make things easier.
     - can make NPCs and puppets and stuff
     - can't build, modify descs
     
-- ooc nexus
-    -master room not needed
-    -character home
-    -nexus room
-        -ic portal
-    -staff home
-    -jail
-        - jail command
+    - jail command
+
+- DARK players? Admin+ anyway?
+
+- Zone DB with names and descs
+
+
+
+
 
 - Better exceptions for reading csv files in mondata?
 

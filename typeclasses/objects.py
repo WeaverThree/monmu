@@ -185,7 +185,13 @@ class ObjectParent:
                 builder_notice(looker, "You should zone this room.")
             elif len(zone) != 1:
                 builder_notice(looker, "Room should only have one zone tag.")
-            zone = string.capwords(zone[0]) if zone else ""
+            if zone:
+                if zone[0] == 'ooc':
+                    # TODO: Look up zone name from zone db. Implement zone DB
+
+                    zone = 'OOC'
+                else:
+                    zone = string.capwords(zone[0]) 
         else:
             zone = "Somewhere Strange"
 
