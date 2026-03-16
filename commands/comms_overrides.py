@@ -201,7 +201,7 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
     # these cmd: lock controls access to the channel command itself
     # the admin: lock controls access to /boot/ban/unban switches
     # the manage: lock  controls access to /create/destroy/desc/lock/unlock switches
-    locks = "cmd:not pperm(channel_banned);admin:all();manage:all();changelocks:perm(Admin)"
+    locks = "cmd:not pperm(channel_banned);admin:all();manage:perm(Admin);changelocks:perm(Admin)"
     switch_options = (
         "list",
         "all",
@@ -611,17 +611,14 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
         if not channel.subscriptions.has(target):
             return False, f"{target} is not connected to channel {channel.key}."
         # find all of target's nicks linked to this channel and delete them
-        for nick in [
-            nick
-            for nick in target.nicks.get(category="channel", return_tuple=True) or []
-            if nick.value[3].lower() == channel.key
-        ]:
-            nick.delete()
+        for nick in target.nicks.get(return_tuple=True) or []:
+            if nick[3].lower() == channel.channel_msg_nick_replacement.format(channelname=channel.key):
+                nick.delete()
         channel.disconnect(target)
         reason = f" Reason: {reason}" if reason else ""
-        target.msg(f"You were booted from channel {channel.key} by {self.caller.key}.{reason}")
+        target.msg(f"You were booted from channel {channel.name} by {self.caller.get_display_name()}.{reason}")
         if not quiet:
-            channel.msg(f"{target.key} was booted from channel by {self.caller.key}.{reason}")
+            channel.msg(f"{target.get_display_name()} was booted from channel by {self.caller.get_display_name()}.{reason}")
 
         logger.log_sec(
             f"Channel Boot: {target} (Channel: {channel}, "
@@ -756,12 +753,16 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
         comtable = self.styled_table(
             "id",
             "channel",
-            "my aliases",
-            "locks",
+            "aliases",
+            "my",
             "description",
+            "locks",
             align="l",
-            maxwidth=_DEFAULT_WIDTH,
+            valign='t',
+            # maxwidth=_DEFAULT_WIDTH,
+            border_width=0
         )
+        comtable.reformat_column(5, width=60)
         for chan in subscribed:
             locks = "-"
             chanid = "-"
@@ -769,18 +770,16 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
                 locks = chan.locks
                 chanid = chan.id
 
-            my_aliases = ", ".join(self.get_channel_aliases(chan))
+            chan_aliases = chan.aliases.all() or []
+            my_aliases = [alias for alias in self.get_channel_aliases(chan) if alias not in chan_aliases]
+
             comtable.add_row(
-                *(
-                    chanid,
-                    "{key}{aliases}".format(
-                        key=chan.key,
-                        aliases=";" + ";".join(chan.aliases.all()) if chan.aliases.all() else "",
-                    ),
-                    my_aliases,
-                    locks,
-                    chan.db.desc,
-                )
+                chanid,
+                chan.key,
+                ', '.join(chan_aliases),
+                ', '.join(my_aliases),
+                chan.db.desc,
+                locks,
             )
         return comtable
 
@@ -802,6 +801,7 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
             "aliases",
             "my aliases",
             "description",
+            border_width=0,
             maxwidth=_DEFAULT_WIDTH,
         )
         channels = subscribed + available
@@ -813,15 +813,16 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
                 substatus = "|rMuting|n"
             else:
                 substatus = "|gYes|n"
-            my_aliases = ", ".join(self.get_channel_aliases(chan))
+            chan_aliases = chan.aliases.all() or []
+            my_aliases = [alias for alias in self.get_channel_aliases(chan) if alias not in chan_aliases]
             comtable.add_row(
-                *(
-                    substatus,
-                    chan.key,
-                    ",".join(chan.aliases.all()) if chan.aliases.all() else "",
-                    my_aliases,
-                    chan.db.desc,
-                )
+                
+                substatus,
+                chan.key,
+                ', '.join(chan_aliases),
+                ', '.join(my_aliases),
+                chan.db.desc,
+            
             )
         comtable.reformat_column(0, width=8)
 
@@ -845,8 +846,7 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
             table = self.display_all_channels(subscribed, available)
 
             self.msg(
-                "\n|wAvailable channels|n (use no argument to "
-                f"only show your subscriptions)\n{table}"
+                f"\n|wAvailable channels|n (Use |c+<channame> text|n or |c+<alias> text|n to speak.)\n{table}"
             )
             return
 
@@ -855,7 +855,10 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
             subscribed, _ = self.list_channels()
             table = self.display_subbed_channels(subscribed)
 
-            self.msg(f"\n|wChannel subscriptions|n (use |w/all|n to see all available):\n{table}")
+            self.msg(
+                f"\n|wChannel subscriptions|n (Use |w/all|n to see all available)\n"
+                f"(Use |c+<channame> text|n or |c+<alias> text|n to speak.)\n{table}"
+            )
             return
 
         if not self.switches and not self.args:

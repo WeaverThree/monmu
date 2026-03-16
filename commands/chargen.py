@@ -1,13 +1,68 @@
 import math
 import random
 
+from django.conf import settings
+
 from .command import MuxCommand, Command
 from evennia import GLOBAL_SCRIPTS
-from evennia.utils import evtable, string_suggestions
+from evennia.comms.models import ChannelDB
+from evennia.utils import evtable, string_suggestions, logger
 
+from world.utils import get_defaulthome, get_specialroom
 from world.monutils import type_vuln_table, get_display_mon_name, get_display_mon_type, get_display_mon_banner
 
 _MAX_EQUIPPED_MOVES = 6
+
+class CmdAcceptPolicy(Command):
+    """
+    Accept the rules of this server to join.
+    
+    Usage:
+        accept
+    """
+    key = 'accept'
+    locks = "cmd:all()"
+    help_category = "Special"
+
+    def func(self):
+
+        caller = self.caller
+
+        message = (
+            "|MDo you agree to abide by the rules of the server and the acceptable use policy outlined above, "
+            "and also available at any time via the commands 'help aup' or 'help rules'?\n"
+            "|m[Please type 'i accept' to continue.]|n"
+        )
+
+        answer = yield message
+
+        if answer.strip().lower() != "i accept":
+            caller.msg("|xAborted.|n")
+            return
+        
+        # AUP acceptance stuff
+
+        caller.accepted_rules = True
+
+        for chankey in settings.REMOVE_ON_ACCEPT_CHANNELS:
+            channel = ChannelDB.objects.get_channel(chankey)
+            if channel:
+                if not channel.disconnect(caller):
+                    caller.msg(f"|rCould not remove you from channel '{chankey}'!|n")
+
+        for chankey in settings.ADD_ON_ACCEPT_CHANNELS:
+            channel = ChannelDB.objects.get_channel(chankey)
+            if not channel or not (channel.access(caller, "listen") and channel.connect(caller)):
+                caller.msg(f"|rCould not add you to channel '{chankey}'!|n")
+
+        destination = get_specialroom(settings.TAG_OOC_TARGET)
+        if not destination:
+            destination = get_defaulthome()
+
+        if not caller.move_to(destination, move_type="teleport"):
+            caller.msg("|mCould not move you out of here, please contact staff.|n")
+            
+
 
 class CmdChargenSetSpecies(Command):
     """

@@ -89,7 +89,7 @@ def get_defaulthome():
     home = get_specialroom(settings.TAG_DEFAULT_HOME)
     if not home:
         logger.warn(f"No default home has been tagged. Use '@setspecialroom {settings.TAG_DEFAULT_HOME}' somewhere.")
-        objs = evennia.search_object(settings.DEAFULT_HOME)
+        objs = evennia.search_object(settings.DEFAULT_HOME)
         if not objs:
             logger.error("NO FALLBACK DEFAULT HOME! This will probably cause errors.")
             return None

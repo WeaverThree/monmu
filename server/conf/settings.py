@@ -137,28 +137,38 @@ DEFAULT_CHANNELS = [
         "key": "Public",
         "aliases": ("pub",),
         "desc": "Public discussion, general OOC",
-        "locks": "control:perm(Admin);listen:all();send:all()",
+        "locks": "control:perm(Admin);listen:attr(accepted_rules);send:attr(accepted_rules)",
     },
     {
         "key": "Guild",
         "aliases": (),
         "desc": "Guild OOC",
-        "locks": "control:perm(Admin);listen:all();send:all()",
+        "locks": "control:perm(Admin);listen:attr(approved);send:attr(approved)",
     },
     {
         "key": "Rogue",
         "aliases": (),
         "desc": "Rogue OOC",
-        "locks": "control:perm(Admin);listen:all();send:all()",
+        "locks": "control:perm(Admin);listen:attr(approved);send:attr(approved)",
     },
     {
         "key": "Mercenary",
         "aliases": ("merc",),
         "desc": "Mercenary OOC",
-        "locks": "control:perm(Admin);listen:all();send:all()",
+        "locks": "control:perm(Admin);listen:attr(approved);send:attr(approved)",
+    },
+    {
+        "key": "Incoming",
+        "aliases": ("inc",),
+        "desc": "Players Before Accepting",
+        "locks": "control:perm(Admin);listen:attr(accepted_rules, False) or perm(Admin);send:attr(accepted_rules, False) or perm(Admin)",
     },
 ]
 
+STARTING_CHANNELS = ["Incoming"]
+REMOVE_ON_ACCEPT_CHANNELS = ["Incoming"]
+ADD_ON_ACCEPT_CHANNELS = ["Public"]
+ADD_ON_AUTHORIZE_CHANNELS = ["Guild", "Rogue", "Mercenary"]
 
 
 

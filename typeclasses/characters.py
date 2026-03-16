@@ -116,10 +116,10 @@ class Character(ObjectParent, DefaultCharacter):
             if display_len(desc) < self.DESC_LENGTH_REQ:
                 anyone_notice(looker, "Your description should be longer.")
 
-        tmp_last_talk_time = "Last Talk: " + time_format(time.time() - self.last_ic_talk_time)
-        tmp_last_talk_time += f" Wordcount here: {self.ic_wordcount}"
+        lasttime = time_format(time.time() - self.last_ic_talk_time_loc, 0) if self.last_ic_talk_time_loc else "Never"
+        tmp_last_talk_time = f"(TMP) Last IC: {lasttime} IC Wordcount: {self.ic_wordcount_loc}"
 
-        return f"\n{tmp_last_talk_time}\n{header}\n{statblock}\n{desc}"
+        return f"\n{header}\n{tmp_last_talk_time}\n{statblock}\n{desc}"
     
 
     def get_statblock(self, looker=None, **kwargs):

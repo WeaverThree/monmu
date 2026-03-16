@@ -12,6 +12,8 @@ to be modified.
 
 """
 
+import re
+
 from evennia.comms.comms import DefaultChannel
 
 
@@ -116,4 +118,111 @@ class Channel(DefaultChannel):
     """
 
     channel_prefix_string = "|y[{channelname}]|n "
+    channel_msg_nick_pattern = r"+{alias} $1"
+    channel_msg_nick_replacement = "channel {channelname} = $1"
+
+    def add_user_channel_alias(self, user, alias, **kwargs):
+        """
+        Add a personal user-alias for this channel to a given subscriber.
+
+        Args:
+            user (Object or Account): The one to alias this channel.
+            alias (str): The desired alias.
+
+        Note:
+            This is tightly coupled to the default `channel` command. If you
+            change that, you need to change this as well.
+
+            We add two nicks - one is a plain `alias -> channel.key` that
+            users need to be able to reference this channel easily. The other
+            is a templated nick to easily be able to send messages to the
+            channel without needing to give the full `channel` command. The
+            structure of this nick is given by `self.channel_msg_nick_pattern`
+            and `self.channel_msg_nick_replacement`. By default it maps
+            `alias <msg> -> channel <channelname> = <msg>`, so that you can
+            for example just write `pub Hello` to send a message.
+
+            The alias created is `alias $1 -> channel channel = $1`, to allow
+            for sending to channel using the main channel command.
+
+        """
+        chan_key = self.key.lower()
+
+        # the message-pattern allows us to type the channel on its own without
+        # needing to use the `channel` command explicitly.
+        msg_nick_pattern = self.channel_msg_nick_pattern.format(alias=re.escape(alias))
+        msg_nick_replacement = self.channel_msg_nick_replacement.format(channelname=chan_key)
+        user.nicks.add(
+            msg_nick_pattern,
+            msg_nick_replacement,
+            category="inputline",
+            pattern_is_regex=False,
+            **kwargs,
+        )
+
+        if chan_key != alias:
+            # this allows for using the alias for general channel lookups
+            user.nicks.add(alias, chan_key, category="channel", **kwargs)
+
+
+    def connect(self, subscriber, **kwargs):
+        """
+        Connect the user to this channel. This checks access.
+
+        Args:
+            subscriber (Account or Object): the entity to subscribe
+                to this channel.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        Returns:
+            success (bool): Whether or not the addition was
+                successful.
+
+        """
+        # check access
+        if subscriber in self.banlist or not self.access(subscriber, "listen"):
+            return False
+        # pre-join hook
+        connect = self.pre_join_channel(subscriber)
+        if not connect:
+            return False
+        # subscribe
+        self.subscriptions.add(subscriber)
+        # unmute
+        self.unmute(subscriber)
+        self.msg(subscriber.name + " joined.")
+        # post-join hook
+        self.post_join_channel(subscriber)
+        return True
+
+    def disconnect(self, subscriber, **kwargs):
+        """
+        Disconnect entity from this channel.
+
+        Args:
+            subscriber (Account of Object): the
+                entity to disconnect.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        Returns:
+            success (bool): Whether or not the removal was
+                successful.
+
+        """
+        # pre-disconnect hook
+        disconnect = self.pre_leave_channel(subscriber)
+        if not disconnect:
+            return False
+        # disconnect
+        self.msg(subscriber.name + " left.")
+        self.subscriptions.remove(subscriber)
+        # unmute
+        self.unmute(subscriber)
+        # post-disconnect hook
+        self.post_leave_channel(subscriber)
+        return True
+
+
 

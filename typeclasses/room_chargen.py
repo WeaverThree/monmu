@@ -7,6 +7,7 @@ from commands import chargen
 
 class ChargenRoomCmdset(evennia.CmdSet):
     
+    priority = 100
     
     def at_cmdset_creation(self):
         

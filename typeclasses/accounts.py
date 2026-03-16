@@ -31,6 +31,7 @@ from django.utils.translation import gettext as _
 
 from evennia import AttributeProperty
 from evennia.comms.models import ChannelDB
+from evennia.objects.models import ObjectDB
 from evennia.server.signals import (
     SIGNAL_ACCOUNT_POST_CREATE,
 )
@@ -38,7 +39,10 @@ from evennia.server.throttle import Throttle
 from evennia.utils import create, logger
 from evennia.utils.utils import (
     variable_from_module,
+    class_from_module,
 )
+
+from world.utils import get_specialroom, get_defaulthome
 
 __all__ = ("DefaultAccount", "DefaultGuest")
 
@@ -213,6 +217,67 @@ class Account(DefaultAccount):
             CREATION_THROTTLE.update(ip, "Too many accounts being created.")
         SIGNAL_ACCOUNT_POST_CREATE.send(sender=account, ip=ip)
         return account, errors
+
+
+
+    def create_character(self, *args, **kwargs):
+        """
+        Create a character linked to this account.
+
+        Args:
+            key (str, optional): If not given, use the same name as the account.
+            typeclass (str, optional): Typeclass to use for this character. If
+                not given, use self.default_character_class.
+            permissions (list, optional): If not given, use the account's permissions.
+            ip (str, optional): The client IP creating this character. Will fall back to the
+                one stored for the account if not given.
+            kwargs (any): Other kwargs will be used in the create_call.
+        Returns:
+            Object: A new character of the `character_typeclass` type. None on an error.
+            list or None: A list of errors, or None.
+
+        """
+        # check character slot usage.
+        if slot_check := self.check_available_slots():
+            return None, [slot_check]
+
+        # parse inputs
+        character_key = kwargs.pop("key", self.key)
+        character_ip = kwargs.pop("ip", self.db.creator_ip)
+        character_permissions = kwargs.pop("permissions", self.permissions.all())
+
+        # Load the appropriate Character class
+        character_typeclass = kwargs.pop("typeclass", self.default_character_typeclass)
+        Character = class_from_module(character_typeclass)
+
+        
+        # ObjectDB.objects.get_id(settings.START_LOCATION)
+
+        startroom = get_specialroom("spawn")
+        if not startroom:
+            startroom = get_defaulthome()
+
+        if "location" not in kwargs:
+            kwargs["location"] = startroom
+
+        # Create the character
+        character, errs = Character.create(
+            character_key,
+            self,
+            ip=character_ip,
+            typeclass=character_typeclass,
+            permissions=character_permissions,
+            **kwargs,
+        )
+        if character:
+            self.at_post_create_character(character, ip=character_ip)
+
+        return character, errs
+
+
+
+
+
 
 
     def register_post_command_message(self, message):

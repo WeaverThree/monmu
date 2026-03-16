@@ -5,10 +5,26 @@ Rooms are simple containers that has no location of their own.
 
 """
 
+import evennia
 from evennia.objects.objects import DefaultRoom
 
 from .objects import ObjectParent
 from .characters import PlayerCharacter
+
+from commands import (
+    chargen, 
+    admin_overrides, 
+    general, 
+    general_overrides, 
+    comms_overrides, 
+    system_overrides,
+    building_overrides,
+    userlisting,
+    help_overrides,
+    building,
+)
+
+from evennia.commands.default import building as default_building
 
 class Room(ObjectParent, DefaultRoom):
     """
@@ -46,7 +62,7 @@ class Room(ObjectParent, DefaultRoom):
     def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
 
         if moved_obj.is_typeclass(PlayerCharacter):
-            if moved_obj.player_mode not in ("DOWN", "JAIL"):
+            if moved_obj.player_mode not in ("DOWN", "JAIL", "AUP"):
                 zone = self.tags.get(category="Zone", return_list=True)
                 if zone and zone[0] != 'ooc' and not moved_obj.account.permissions.check('Builder'):
                     if moved_obj.player_mode != "IC":
@@ -73,7 +89,7 @@ class SuperDarkRoom(Room):
         """Only admin can see what's in here"""
         if looker.permissions.check("Builder"):
             table = super().get_room_inventory(looker, kwargs)
-            return f"|[c|X Notice |n|c Only ADMIN+ can see the contents of this room:|n\n{table}"
+            return f"|[y|X Notice |n|y Only BUILDER+ can see the contents of this room:|n\n{table}"
         else:
             return ""
         
@@ -83,6 +99,45 @@ class SuperDarkRoom(Room):
             return False
         return super().at_pre_object_receive(arriving_object, source_location, move_type=move_type, **kwargs)
     
-    def msg_contents(self, text=None, exclude=None, from_obj=None, mapping=None, raise_funcparse_errors=False, **kwargs):
+    def msg_contents(
+            self, text=None, exclude=None, from_obj=None, mapping=None,
+            raise_funcparse_errors=False, **kwargs
+            ):
         """Nothing gets emitted here..."""
         return
+
+
+class AUPRoomCmdSet(evennia.CmdSet):
+    """The 'accept' command for policy and also a few minimal others and a few admin commands"""
+    mergetype = "Replace"
+    priority = 100
+    
+    def at_cmdset_creation(self):
+        
+        self.add(chargen.CmdAcceptPolicy())
+
+        self.add(building_overrides.CmdDesc())
+        self.add(system_overrides.CmdAbout())
+        self.add(comms_overrides.CmdChannel())
+        self.add(general_overrides.CmdLook())
+        self.add(userlisting.CmdStaff())
+        self.add(default_building.CmdTeleport())
+        self.add(default_building.CmdSetAttribute())
+        self.add(default_building.CmdExamine())
+        self.add(help_overrides.CmdHelp())
+        self.add(default_building.CmdTag())
+        self.add(building.CmdZone())
+        self.add(building.CmdSetSpecialRoom())
+
+
+
+
+class AUPRoom(SuperDarkRoom):
+    """A room in which the policy is laid out. Policy not included."""
+    DESC_LENGTH_REQ = 0
+
+    def at_object_creation(self):
+
+        super().at_object_creation()
+
+        self.cmdset.add(AUPRoomCmdSet(), persistent=True)
