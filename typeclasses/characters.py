@@ -547,18 +547,19 @@ class PlayerCharacter(Character):
         if not channel or not (channel.access(self, "listen") and channel.connect(self)):
             logger.log_err("New character '{self.key}' could not connect to ConnectInfo")
             
-        for chan_info in settings.DEFAULT_CHANNELS:
-            if chankey := chan_info.get("key"):
-                channel = ChannelDB.objects.get_channel(chankey)
-                if not channel or not (channel.access(self, "listen") and channel.connect(self)):
-                    logger.log_err(f"New character '{self.key}' could not connect to default channel '{chankey}'!")
-            else:
-                logger.log_err(f"Default channel '{chan_info}' is missing a 'key' field!")
+        for chankey in settings.STARTING_CHANNELS:
+            channel = ChannelDB.objects.get_channel(chankey)
+            if not channel or not (channel.access(self, "listen") and channel.connect(self)):
+                logger.log_err(f"New character '{self.key}' could not connect to default channel '{chankey}'!")
 
         return super().at_object_creation() # Not sure if return part is needed but
 
 
     def at_pre_move(self, dest, move_type=None, **kwargs):
+        if not self.accepted_rules and not self.permissions.check("Builder"):
+            self.msg("|mYou can't be moved until you accept.|n")
+            return
+
         if not dest.is_typeclass("typeclasses.rooms.Room"):
             self.msg("Can't enter an object that is not a room (for now).")
             return False
