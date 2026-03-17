@@ -91,7 +91,9 @@ class CmdPose(MuxCommand):
         """
         args = self.args
         if args and not args[0] in ["'", ",", ":"] and not self.cmdstring == ';':
-            args = " %s" % args.strip()
+            args = f" {args.strip()}"
+        else:
+            args = args.strip()
         self.args = args
 
 

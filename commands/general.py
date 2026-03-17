@@ -1,8 +1,9 @@
 
 import time
 
-from .command import Command
+from .command import Command, MuxCommand
 from world.utils import split_on_all_newlines, get_wordcount
+from typeclasses.characters import Character
 
 class CmdOOC(Command):
     """
@@ -111,3 +112,40 @@ class CmdSpoof(Command):
         if self.caller.location.is_ic_room:
             caller.last_ic_talk_time = time.time()
             caller.ic_wordcount += wordcount
+
+
+class CmdStats(Command):
+    """
+    Get the stats of yourself, or compare yourself with another creature.
+    (Or see the stats of another, if you're ADMIN+. Compare will always compare.)
+
+    Usage:
+      stats
+      stats <creature>
+      compare <creature>
+    """
+
+    key = "stats"
+    aliases = ["sheet", "compare"]
+    locks = "cmd:all()"
+
+    def func(self):
+
+        caller = self.caller
+        args = self.args.strip()
+        if not args:
+            target = caller
+        else:
+            target = caller.search(args) #, typeclass=Character)
+            if not target:
+                return
+            if not target.is_typeclass(Character):
+                # Because searching by typeclass isn't working fsr
+                self.msg(f"{target.get_display_name()} isn't something that can have stats.")
+                return
+            
+        always_compare = True if self.cmdstring.lower() == 'compare' else False
+
+        sheet = target.get_statblock(caller, always_compare=always_compare)
+
+        self.msg(text=(sheet, {"type": "look"}), options=None)

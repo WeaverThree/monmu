@@ -8,9 +8,6 @@ I'm just making this public to make things easier.
 
 # Todo list!
 
-- Probably need to customize all of the emitting functions anyway.
-    - Implement separate comms idle time perhaps
-    - Restyle chan, chan/all
 - ConnectInfo is leaking peoples IPs and shit
 - Character creation system
 
@@ -20,7 +17,6 @@ I'm just making this public to make things easier.
         - Faction (Guild, Rogue, Merc, Unaffiliated)
         - Rank
         - Subfaction
-    - Abilities
     - Shortdesc
     - Orientation
     - Player
@@ -42,23 +38,18 @@ I'm just making this public to make things easier.
 
     2 votes a day every day for a week = two tokens - 1 token = 1000 points
 
-    delevling: remove 1 EV from random stat 6 times
+- 255 character desc size
 
-    follow command
-    find command
-    special abilities
+- follow command
+- find command
+- special abilities
 
 - Player character death 
-    - returned to home after time period with 1hp and 
+    - returned to home after time period with 1hp and delevling: remove 4 EV from random stat 6 times
 
 - In character home. Home takes you there
-- see unlogged characters
 - unlogged characters go home after 24 hours
 - rooms that you can home in
-
-- start in AUP room
-
-- System for denying unlogged player target of commands.
 
 - must be builder to build. might be able to desc owned rooms but not build from them
 
@@ -74,6 +65,14 @@ I'm just making this public to make things easier.
 
 - Zone DB with names and descs
 
+- Feature field dictionary for players and locations
+    - "'s" look feature
+- +use command for moves
+- Roll percent for percent moves
+- but no statistical move implementation
+
+- special teleport command for teleport users
+    - other movement abilities?
 
 
 

@@ -114,6 +114,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(dice.CmdDice())
         self.add(general.CmdOOC())
         self.add(general.CmdSpoof())
+        self.add(general.CmdStats())
 
 
 

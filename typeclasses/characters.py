@@ -62,6 +62,37 @@ def _statline(statname, char):
         sep = '-'
     return f"|#{_statcolor[statname]}{_display_statname[statname]:>7}{sep}|w{stat:3d}|x[{iv:2d}||{ev:3d}]|n"
 
+# There's an issue with the math here where being 40 points apart will show as 'stronger' to one side
+# but 'slightly weaker' to the other. Not sure how to fix that.
+
+_comparetable = [
+    (-999, -80, "Incredibly Weaker",      "|g"),
+    ( -80, -60, "Significantly Weaker",   "|g"),
+    ( -60, -40, "Weaker",                 "|G"),
+    ( -40, -20, "Slightly Weaker",        "|G"),
+    ( -20,  20, "Comprable",              "|Y"),
+    (  20,  40, "Slightly Stronger",      "|R"),
+    (  40,  60, "Stronger",               "|R"),
+    (  60,  80, "Significantly Stronger", "|r"),
+    (  80, 999, "Incredibly Stronger",    "|r"),
+]
+
+def _comparestatline (statname, us, them):
+    # We're going to assume that both sides have stats here
+    ourstat = us.stats[statname]
+    theirstat = them.stats[statname]
+    diff = theirstat - ourstat # this + us = them
+
+    desc = ""
+    color = ""
+    for low, high, d, c in _comparetable:
+        if low <= diff < high:
+            desc = d
+            color = c
+            break
+
+    return f"|#{_statcolor[statname]}{_display_statname[statname]:>7}:{color}{desc:>22}|n"
+    
 
 
 class Character(ObjectParent, DefaultCharacter):
@@ -109,53 +140,92 @@ class Character(ObjectParent, DefaultCharacter):
             headercolor="|b"
         )
 
-        statblock = self.get_statblock(looker, **kwargs)
-
         desc = self.get_display_desc(looker, **kwargs)
 
         if looker == self:
             if display_len(desc) < self.DESC_LENGTH_REQ:
                 anyone_notice(looker, "Your description should be longer.")
 
-        lasttime = time_format(time.time() - self.last_ic_talk_time_loc, 0) if self.last_ic_talk_time_loc else "Never"
-        tmp_last_talk_time = f"(TMP) Last IC: {lasttime} IC Wordcount: {self.ic_wordcount_loc}"
 
-        return f"\n{header}\n{tmp_last_talk_time}\n{statblock}\n{desc}"
+        return f"\n{header}\n{desc}"
     
 
-    def get_statblock(self, looker=None, **kwargs):
+    def get_statblock(self, looker, always_compare=False, **kwargs):
 
-        stat1 = f"{_statline('health',self)}{_statline('physical attack',self)}{_statline('special attack',self)}"
-        stat2 = f"{_statline('speed',self)}{_statline('physical defense',self)}{_statline('special defense',self)}"
+        if not self.species:
+            return (
+                f"{self.get_display_name(looker)} does not have a species selected, "
+                "thus there is nothing to see or compare to."
+            )
 
-        stat1 += f"|b  Level:|n {self.level}"
-        stat2 += f"|b Nature:|n {self.nature}"
+        header = header_two_slot(_WIDTH,
+            f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
+            f"{get_display_mon_banner(self)}",
+            headercolor="|b"
+        )
 
-        ivtokens_left = self.ivtokens - self.ivtokens_spent
-        evtokens_left = self.evtokens - self.evtokens_spent
+        if self == looker or (looker.permissions.check("Admin") and not always_compare):
+
+            # Return the real full stat block
+            stat1 = (
+                f"{_statline('health',self)}{_statline('physical attack',self)}{_statline('special attack',self)}"
+                f"|b  Level:|n {self.level}"
+            )
+
+            stat2 = (
+                f"{_statline('speed',self)}{_statline('physical defense',self)}{_statline('special defense',self)}"
+                f"|b Nature:|n {self.nature}"
+            )
+
+            ivtokens_left = self.ivtokens - self.ivtokens_spent
+            evtokens_left = self.evtokens - self.evtokens_spent
+            
+            ivcolor = '|r' if ivtokens_left else '|n'
+            evcolor = '|r' if evtokens_left else '|n'
+
+            stat3 = (
+                f"|b{'EV Tokens:':>15}{evcolor} {evtokens_left:2n} "
+                f"|b{'Ability:':>15}|n {self.ability}"
+            )
+
+            stat4 = f"|b{'IV Tokens:':>15}{ivcolor} {ivtokens_left:2n}" if ivtokens_left else ""
+
+            out = ['', header, stat1, stat2, stat3]
+
+            if stat4:
+                out.append(stat4)
+
+            if self.moves_equipped:
+                out.append(f"|w{'- - - Moves Equipped - - -':^{_WIDTH}}|n")
+                out.append(str(moves_table(self.moves_equipped)))
+
+            moves_known_filtered = self.moves_known.copy()
+            for move in self.moves_equipped:
+                moves_known_filtered.remove(move)
+            
+            if moves_known_filtered:
+                out.append(f"|w{'- - - Moves Known - - -':^{_WIDTH}}|n")
+                out.append(str(moves_table(moves_known_filtered, useheader=(not self.moves_equipped))))
         
-        ivcolor = '|r' if ivtokens_left else '|n'
-        evcolor = '|r' if evtokens_left else '|n'
+        else:
+            stat0 = f" Compared to {looker.get_display_name(looker)}, {self.get_display_name(looker)} is:"
+            stat1 = (
+                f" {_comparestatline("health", looker, self)}  "
+                f" {_comparestatline("speed", looker, self)}"
+            )
+            stat2 = (
+                f" {_comparestatline("physical attack", looker, self)}  "
+                f" {_comparestatline("physical defense", looker, self)}"
+            )
+            stat3 = (
+                f" {_comparestatline("special attack", looker, self)}  "
+                f" {_comparestatline("special defense", looker, self)}"
+            )
 
-        stat3 = f"|b{'IV Tokens:':>15}{ivcolor} {self.ivtokens - self.ivtokens_spent:2n} "
-        stat3 += f"|b{'EV Tokens:':>15}{evcolor} {self.evtokens - self.evtokens_spent:2n} "
-        stat3 += f"|b{"Ability:":>15}|n {self.ability}"
+            stat4 = f" |bTheir level:|n {self.level}"
 
-        out = [stat1, stat2, stat3]
+            out = ['', header, stat0, stat1, stat2, stat3, stat4]
 
-        if self.moves_equipped:
-            out.append(f"|w{'- - - Moves Equipped - - -':^{_WIDTH}}|n")
-            out.append(str(moves_table(self.moves_equipped)))
-
-        
-        moves_known_filtered = self.moves_known.copy()
-        for move in self.moves_equipped:
-            moves_known_filtered.remove(move)
-        
-        if moves_known_filtered:
-            out.append(f"|w{'- - - Moves Known - - -':^{_WIDTH}}|n")
-            out.append(str(moves_table(moves_known_filtered, useheader=(not self.moves_equipped))))
-    
         return '\n'.join(out)
 
 
