@@ -526,6 +526,12 @@ class PlayerCharacter(Character):
         """Are we in (an) IC mode?"""
         return self.player_mode in ("IC", "DOWN") # all other modes are OOC modes
     
+    @property
+    def is_movelocked(self):
+        """Are we currently under the movelock timer?"""
+        # return time.time() < self.move_lock_end_time
+        return False
+    
 
     def at_object_creation(self):
         """
@@ -554,39 +560,64 @@ class PlayerCharacter(Character):
 
         return super().at_object_creation() # Not sure if return part is needed but
 
+    
 
     def at_pre_move(self, dest, move_type=None, **kwargs):
+
         if not self.accepted_rules and not self.permissions.check("Builder"):
             self.msg("|mYou can't be moved until you accept.|n")
-            return
+            return False
 
         if not dest.is_typeclass("typeclasses.rooms.Room"):
             self.msg("Can't enter an object that is not a room (for now).")
             return False
-        
-        if move_type == "traverse":
-            now = time.time()
-            if self.move_lock_end_time > now:
-                self.msg("Can't move for another {:.0f} seconds".format(self.move_lock_end_time - now))
-                return False
-            else:
-                return super().at_pre_move(dest, move_type, **kwargs)
-        else:
-            return super().at_pre_move(dest, move_type, **kwargs)
+
+        return super().at_pre_move(dest, move_type, **kwargs)
+
+        # if move_type == "traverse":
+        #     if self.is_movelocked:
+        #         self.msg(f"|MCan't move for another {self.move_lock_end_time - time.time():.0f} seconds|n")
+        #         return False
+        #     else:
+        #         return super().at_pre_move(dest, move_type, **kwargs)
+        # else:
+        #     return super().at_pre_move(dest, move_type, **kwargs)
 
 
     def at_post_move(self, src, **kwargs):
-        active_players_in_room = [char 
-                for char in PlayerCharacter.objects.filter(Q(db_location=self.location) & ~ Q(db_key=self)) 
-                if char.idle_time and char.idle_time < _RP_TRAP_IDLE_TIME]
-        if active_players_in_room:
-            self.move_lock_end_time = time.time() + _RP_TRAP_MOVE_DELAY
-            self.register_post_command_message(
-                f"|MPlayer activity detected|n, locking movement for {_RP_TRAP_MOVE_DELAY} seconds."
-            )
-        else:
-            self.ndb.movelock = None;
+
+        # # If we move anyway, cancel movelock
+        # self.move_lock_end_time = 0
+
+        # if self.location.is_ic_room and self.location.ic_idle_time_loc < 2 * _RP_TRAP_IDLE_TIME:
+        #     active_players_in_room = [
+        #         char for char in PlayerCharacter.objects.filter(Q(db_location=self.location) & ~ Q(db_key=self)) 
+        #         if char.is_ic and char.ic_idle_time < _RP_TRAP_IDLE_TIME
+        #     ]
+        #     if active_players_in_room:
+        #         self.move_lock_end_time = time.time() + _RP_TRAP_MOVE_DELAY
+        #         self.register_post_command_message(
+        #             f"|MIC activity detected|n, locking movement for {_RP_TRAP_MOVE_DELAY} seconds."
+        #         )
         super().at_post_move(src, **kwargs)
+
+
+    def recheck_movelock(self):
+        pass
+        # # Does not presently work, not sure why. Removing this system for now.
+        # if not self.is_movelocked:
+        #     return
+        # if self.location.is_ic_room and self.location.ic_idle_time_loc < 2 * _RP_TRAP_IDLE_TIME:
+        #     active_players_in_room = [
+        #         char for char in PlayerCharacter.objects.filter(Q(db_location=self.location) & ~ Q(db_key=self)) 
+        #         if char.is_ic and char.ic_idle_time < _RP_TRAP_IDLE_TIME
+        #     ]
+        #     if not active_players_in_room:
+        #         # Everyone moved out, so
+        #         self.register_post_command_message(
+        #             f"|MRoom empty, ending lock.|n"
+        #         )
+        #         self.move_lock_end_time = 0
 
 
     def at_pre_channel_msg(self, message, channel, senders=None, **kwargs):

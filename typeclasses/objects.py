@@ -54,6 +54,10 @@ class ObjectParent:
     DESC_LENGTH_REQ = 0
 
     @property
+    def ic_idle_time_loc(self):
+        return time.time() - self.last_ic_talk_time_loc
+
+    @property
     def can_talk(self):
         return True
 

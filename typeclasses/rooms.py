@@ -73,6 +73,13 @@ class Room(ObjectParent, DefaultRoom):
                         moved_obj.msg("|mLeaving IC grid, enetring OOC mode.|n")
                         moved_obj.player_mode = "OOC"
 
+    # def at_object_leave(self, moved_obj, target_location, move_type="move", **kwargs):
+
+    #     if moved_obj.is_typeclass(PlayerCharacter):
+    #         moved_obj.recheck_movelock()
+
+    #     return super().at_object_leave(moved_obj, target_location, move_type, **kwargs)
+
 
 class SuperDarkRoom(Room):
     """
