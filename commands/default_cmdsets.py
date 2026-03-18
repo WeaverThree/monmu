@@ -121,6 +121,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(userlisting.CmdStaff())
         self.add(userlisting.CmdStatus())
         self.add(userlisting.CmdStaffInfo())
+        self.add(userlisting.CmdTalkers())
 
 
 

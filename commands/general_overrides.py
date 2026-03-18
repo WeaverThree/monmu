@@ -128,9 +128,9 @@ class CmdPose(MuxCommand):
             mapping={'sender':self.caller}, from_obj=self.caller
         )
         wordcount = get_wordcount(self.args)
-        location.last_ic_talk_time_loc = time.time()
+        location.register_last_talk_time(caller)
         location.ic_wordcount_loc += wordcount
-        if self.caller.location.is_ic_room:
+        if caller.location.is_ic_room:
             caller.last_ic_talk_time = time.time()
             caller.ic_wordcount += wordcount
 

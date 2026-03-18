@@ -100,6 +100,8 @@ class Character(ObjectParent, DefaultCharacter):
     A monmorph character. Contains functionality that's important for NPCs and PCs alike.
     """
     
+    # Game system properties
+
     species = AttributeProperty("")
     subtype = AttributeProperty("")
     form = AttributeProperty("")

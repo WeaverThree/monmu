@@ -23,6 +23,7 @@ from evennia.utils import evtable, ansi, group_objects_by_key_and_desc, make_ite
 
 from world.utils import builder_notice, replace_mush_escapes, header_two_slot, get_wordcount, split_on_all_newlines
 
+_TALKERS_LIST_HOLD_TIME = settings.TALKERS_LIST_HOLD_TIME
 _WIDTH = settings.OUR_WIDTH
 _INFLECT = inflect.engine()
 _EXIT_NAME_ORDER = ["[N]", "[NE", "[E]", "[SE", "[S]", "[SW", "[W]", "[NW", "[U]", "[D]", "[I]", "[O]"]
@@ -50,6 +51,7 @@ class ObjectParent:
     # This goes here so we don't have to worry about if we're contained in a room
     last_ic_talk_time_loc = AttributeProperty(0, category="talkmonitor")
     ic_wordcount_loc = AttributeProperty(0, category="talkmonitor")
+    ic_talkers_loc = AttributeProperty({}, category="talkmonitor")
 
     DESC_LENGTH_REQ = 0
 
@@ -65,7 +67,37 @@ class ObjectParent:
     def is_ic_room(self):
         """Not an IC room if it's not a Room..."""
         return False
-    
+
+
+    def register_last_talk_time(self, talker):
+        """Talker talked here..."""
+        if not self.is_ic_room:
+            return
+        now = time.time()
+        self.ic_talkers_loc[talker] = now
+        self.last_ic_talk_time_loc = now
+        self.drop_old_talkers()
+
+
+    def get_display_talker_list(self, looker):
+        """Get a nicely formated list of recent IC talkers in this location."""
+        if not self.is_ic_room:
+            return "|mTalkers are only tracked in IC rooms.|n"
+        self.drop_old_talkers()
+        now = time.time()
+        talkerlist = [(talktime, talker) for talker, talktime in self.ic_talkers_loc.items()]
+        out = [f"|wLast IC talk time of recent talkers in |b{self.get_display_name()}|n:"]
+        for talktime, talker in sorted(talkerlist):
+            out.append(f" |w{time_format(now - talktime)}|n - {talker.get_display_name(looker)}")
+        return "\n".join(out)
+
+
+    def drop_old_talkers(self):
+        now = time.time()
+        for talker in self.ic_talkers_loc.keys():
+            if self.ic_talkers_loc[talker] - now > _TALKERS_LIST_HOLD_TIME:
+                del self.ic_talkers_loc[talker]
+        
 
     def register_post_command_message(self, message):
         """Register a message for display after the current command. Forwards to the object's account."""
@@ -394,7 +426,7 @@ class ObjectParent:
                 mapping=location_mapping,
             )
             wordcount = get_wordcount(message)
-            self.location.last_ic_talk_time_loc = time.time()
+            location.register_last_talk_time(self)
             self.location.ic_wordcount_loc += wordcount
             if self.is_typeclass(PlayerCharacter) and self.location.is_ic_room:
                 self.last_ic_talk_time = time.time()

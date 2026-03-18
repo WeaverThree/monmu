@@ -319,3 +319,24 @@ class CmdStaffInfo(Command):
 
         self.caller.stafftag = status
         self.msg(f"Staff Info set to '{status}'")
+
+
+class CmdTalkers(Command):
+    """
+    Show recent (ic) talkers in the current location
+
+    Usage:
+        +talkers
+    """
+    key = "+talkers"
+    locks = "cmd:all()"
+    help_category = "People"
+    
+    def func(self):
+        
+        # Dang we don't even care about args
+
+        if not self.caller.location:
+            self.msg(f"{self.caller.get_display_name()} |mdoesn't have a location!|n")
+
+        self.msg(self.caller.location.get_display_talker_list(self.caller))

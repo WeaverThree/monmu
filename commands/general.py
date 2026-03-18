@@ -107,7 +107,7 @@ class CmdSpoof(Command):
 
         wordcount = get_wordcount(args)
 
-        location.last_ic_talk_time_loc = time.time()
+        location.register_last_talk_time(self.caller)
         location.ic_wordcount_loc += wordcount
         if self.caller.location.is_ic_room:
             caller.last_ic_talk_time = time.time()

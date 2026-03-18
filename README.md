@@ -57,7 +57,7 @@ I'm just making this public to make things easier.
     - can't build, modify descs
     - createnpc command
     - checknpc command
-    - access to admin chargen but only allow targeting npcs
+    - access to admin chargen but only allow targeting NPCs
     
     
     - jail command
