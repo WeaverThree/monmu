@@ -4,11 +4,11 @@ import time
 from django.conf import settings  # type: ignore
 
 import evennia
-from evennia.utils import utils, evtable
+from evennia.utils import utils, evtable, crop
 from typeclasses.accounts import Account
 
-
 from .command import Command, MuxCommand
+from world.monutils import get_display_mon_name, get_display_mon_type, get_display_mon_banner
 
 _WIDTH = settings.OUR_WIDTH
 
@@ -17,8 +17,8 @@ class CmdWho(MuxCommand):
     list who is currently online
 
     Usage:
-      who
-      doing
+        who
+        doing
 
     Shows who is currently online. Doing is an alias that limits info also for those with all
     permissions.
@@ -114,8 +114,77 @@ class CmdWho(MuxCommand):
                 border_width=0,                                  
             )
 
-        is_one = naccounts == 1
-        self.msg(f"\n{table}\n  {"One" if is_one else naccounts} unique account{"" if is_one else "s"} logged in.")
+        self.msg(f"\n{table}\n  {naccounts} online. Use |bwhat|n for more details about people.")
+
+_colorsex = {
+    "A": "|gA|n",
+    "F": "|rF|n",
+    "M": "|bM|n",
+    "N": "|yN|n",
+    "": "|[r|X?|n",
+}
+
+class CmdWhat(MuxCommand):
+    """
+    list what everyone who is currently online is
+
+    Usage:
+        what
+    """
+
+    key = "what"
+    locks = "cmd:all()"
+    help_category = "People"
+
+    def func(self):
+        """
+        Get all connected accounts by polling session.
+        """
+        session_list = evennia.SESSION_HANDLER.get_sessions()
+        session_list = sorted(session_list, key=lambda ses: ses.puppet.key if ses.puppet else "---"+ses.account.key)
+
+        naccounts = evennia.SESSION_HANDLER.account_count()
+
+        names = []
+        sexes = []
+        species = []
+        shortdescs = []
+
+
+        for session in session_list:
+            if not session.logged_in:
+                continue
+
+            session_account = session.get_account()
+            puppet = session.get_puppet()
+
+            name = (
+                puppet.get_display_name(self.caller) if puppet 
+                else f"|[R|X{session.account.name}|n"
+            )
+            
+            names.append(crop(name, 25,"…"))
+            
+            sexes.append(_colorsex[puppet.sex[0] if puppet and puppet.sex else ''])
+
+            species.append(get_display_mon_banner(puppet))
+
+            shortdescs.append(crop(puppet.short_desc if puppet else "", 100,'…'))
+
+            header = (
+                "|wName|n",
+                "|wSex|n",
+                "|wSpecies|n",
+                "|wShort Description|n",
+            )
+
+        table = evtable.EvTable(
+            *header, table=(names,sexes,species,shortdescs),
+            border_width=0,                              
+        )
+        table.reformat_column(1,align='c')
+
+        self.msg(f"\n{table}\n  {naccounts} online. Use |bwho|n for more details about people.")
 
 
 def _getpuppet(account):
@@ -217,6 +286,10 @@ class CmdStatus(Command):
         status = status.split("\n")[0]
         status = status.split("|/")[0]
 
+        if not status:
+            self.msg(f"Current status is: {self.caller.whostatus if self.caller.whostatus else '<NOT SET>'}")
+            return
+
         self.caller.whostatus = status
         self.caller.msg(f"Status set to '{status}'")
 
@@ -240,5 +313,9 @@ class CmdStaffInfo(Command):
         status = status.split("\n")[0]
         status = status.split("|/")[0]
 
+        if not status:
+            self.msg(f"Current staff tag is: {self.caller.stafftag if self.caller.stafftag else '<NOT SET>'}")
+            return
+
         self.caller.stafftag = status
-        self.caller.msg(f"Staff Info set to '{status}'")
+        self.msg(f"Staff Info set to '{status}'")

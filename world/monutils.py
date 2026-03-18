@@ -88,7 +88,11 @@ def get_display_mon_name(mon):
     from typeclasses.characters import Character
     
     # We're distingushing betweend dicts and characters here so can't use is_typeclass
-    if isinstance(mon, Character):
+    if not mon:
+        name = "????"
+        subtype = None
+        form = None
+    elif isinstance(mon, Character):
         name = mon.species if mon.species else "????"
         subtype = mon.subtype
         form = mon.form
@@ -107,7 +111,10 @@ def get_display_mon_type(mon):
     from typeclasses.characters import Character
 
     # We're distingushing betweend dicts and characters here so can't use is_typeclass
-    if isinstance(mon, Character):
+    if not mon: 
+        type1 = None
+        type2 = None
+    elif isinstance(mon, Character):
         type1 = mon.type1
         type2 = mon.type2
     else:
@@ -128,7 +135,9 @@ def get_display_mon_banner(mon):
     from typeclasses.characters import Character
 
     # We're distingushing betweend dicts and characters here so can't use is_typeclass
-    if isinstance(mon, Character):
+    if not mon:
+        return f"{get_display_mon_type(mon)} #? {get_display_mon_name(mon)}"
+    elif isinstance(mon, Character):
         return f"{get_display_mon_type(mon)} #{mon.dexno if mon.dexno else '?'} {get_display_mon_name(mon)}"
     else:
         return f"{get_display_mon_type(mon)} #{mon['dexno']} {get_display_mon_name(mon)}"
