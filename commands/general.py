@@ -163,7 +163,7 @@ class CmdStats(Command):
                 self.msg(f"{target.get_display_name()} isn't something that can have stats.")
                 return
             
-        always_compare = True if self.cmdstring.lower() == 'compare' else False
+        always_compare = True if self.cmdstring.lower() == '+compare' else False
 
         sheet = target.get_statblock(caller, always_compare=always_compare)
 
