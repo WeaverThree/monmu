@@ -44,18 +44,37 @@ class CmdOOC(Command):
             caller.msg("|mYou can't talk here.|n")
             return
 
-        out = ["|Y<OOC>|n {sender}"]
+        firstline = "|Y<OOC>|n {sender}"
+        otherline = "|Y<OOC>|n "
+        
+        saymode = False
+
         if args[0] == ":":
             if args[1] == "'":
-                out.append(args[1:])
+                args = args[1:]
             else:
-                out.append(f" {args[1:]}")
+                args = f" {args[1:]}"
         elif args[0] == ";":
-            out.append(args[1:])
+            args = args[1:]
         else:
-            out.append(f' says, "{args}"')
+            # We don't allow newlines in SAY type messages because they're wrapped in " " and we don't
+            # want anything silly to happen with the formatting or anything...
+            saymode = True
+            args = split_on_all_newlines(args)
+            out = [firstline + f' says, "{' '.join(args)}"']
 
-        location.msg_contents(''.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
+        if not saymode:
+            # For other message types 
+            out = []
+            lines = split_on_all_newlines(args)
+            out.append(firstline + lines[0].rstrip())
+            for line in lines[1:]:
+                line.strip()
+                out.append(otherline + line + " ({sender})" if line else "")
+            
+
+
+        location.msg_contents('\n'.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
 
 
 class CmdSpoof(Command):
