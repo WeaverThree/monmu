@@ -51,18 +51,18 @@ def dev_notice(target, message):
         target.register_post_command_message(f"|[r|X Dev Notice |n|r {message}|n")
 
 
-def header_two_slot(width, slot1, slot2=None, headercolor="|R", color1="|w", color2="|w"):
+def header_two_slot(width, slot1, slot2=None, headercolor="|R"):
     """
     Fill width characters with a header line wrapped around slot1 (left) and slot2 (right).
     Slot2 is optional. If given something false, it won't be given a space.
     """
 
     if slot2:
-        header_left = f"{headercolor}--< {color1}{slot1} {headercolor}>-"
-        header_right = f"{headercolor}-< {color2}{slot2} {headercolor}>--|n"
+        header_left = f"{headercolor}--<|n {slot1} {headercolor}>-"
+        header_right = f"{headercolor}-<|n {slot2} {headercolor}>--|n"
         fill = width - display_len(header_left) - display_len(header_right)
     else:
-        header_left = f"{headercolor}--< {color1}{slot1} {headercolor}>-"
+        header_left = f"{headercolor}--< {slot1} {headercolor}>-"
         header_right = "|n"
         fill = width - display_len(header_left) + display_len(headercolor)
 

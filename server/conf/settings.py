@@ -81,7 +81,8 @@ COMMAND_DEFAULT_CLASS = "commands.command.MuxCommand"
 GLOBAL_SCRIPTS = {
     # 'key': {'typeclass': 'typeclass.path.here',
     #         'repeats': -1, 'interval': 50, 'desc': 'Example script'},
-    'mondata': {'typeclass': 'typeclasses.scripts.mondata.MonData',}
+    'mondata': {'typeclass': 'typeclasses.scripts.mondata.MonData',},
+    'crons': {'typeclass': 'typeclasses.scripts.crons.Crons',},
 }
 
 

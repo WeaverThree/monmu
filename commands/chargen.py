@@ -16,7 +16,8 @@ _STARTING_MOVES = settings.STARTING_MOVES
 _STARTING_MOVES_EQUIPPED = settings.STARTING_MOVES
 _MIN_DESC = settings.DESIRED_MIN_DESC
 _ALREADY_APPROVED_MSG = (
-    "{target} |bis already approved. Please ask staff if you want to change anything "
+    "{target} |bis already approved (or being checked for approval)." 
+    " Please ask staff if you want to change anything "
     "that you can't still change by yourself. Thanks!|n"
 )
 
@@ -308,7 +309,7 @@ class CmdChargenBuyIVs(MuxCommand):
         if not remaining:
             self.msg(f"{target.get_display_name(looker=self.caller)} has no IV tokens to spend.")
         
-        stat = self.lhs
+        stat = self.lhs.lower()
         amount = self.rhs
 
         if not (stat and amount):

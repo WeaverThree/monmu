@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _ # Not really using this but...
 from evennia import AttributeProperty
 from evennia.comms.models import ChannelDB
 from evennia.objects.objects import DefaultCharacter
-from evennia.utils import logger, display_len, time_format
+from evennia.utils import logger, display_len, time_format, crop
 from evennia.utils.ansi import ANSI_PARSER
 
 from .objects import ObjectParent
@@ -162,46 +162,40 @@ class Character(ObjectParent, DefaultCharacter):
     player_name = AttributeProperty("")
     player_contact = AttributeProperty("")
     
-    faction = AttributeProperty("")
+    faction = AttributeProperty("Unaff.")
     subfaction = AttributeProperty("")
-    rank = AttributeProperty("")
+    rank = AttributeProperty("Nobody")
 
     last_puppeted = AttributeProperty(0)
 
 
-
-
-    def return_appearance(self, looker=None, **kwargs):
-        
-        header = header_two_slot(_WIDTH,
+    def get_display_header(self, looker=None, **kwargs):
+        return header_two_slot(_WIDTH,
             f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
             f"{get_display_mon_banner(self)}",
             headercolor="|b"
         )
 
+
+    def return_appearance(self, looker=None, show_header=True, **kwargs):
         desc = self.get_display_desc(looker, **kwargs)
 
         if looker == self:
             if display_len(desc) < self.DESC_LENGTH_REQ:
                 anyone_notice(looker, "Your description should be longer.")
 
-
-        return f"{header}\n{desc}\n"
+        return f"{self.get_display_header() + '\n' if show_header else ''}{desc}\n"
     
 
-    def get_statblock(self, looker, always_compare=False, **kwargs):
+    def get_statblock(self, looker, always_compare=False, show_header=True, **kwargs):
 
         if not self.species:
             return (
                 f"{self.get_display_name(looker)} does not have a species selected, "
-                "thus there is nothing to see or compare to."
+                "thus there are no stats to see or compare to.\n"
             )
 
-        header = header_two_slot(_WIDTH,
-            f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
-            f"{get_display_mon_banner(self)}",
-            headercolor="|b"
-        )
+        out = [self.get_display_header(looker)] if show_header else []
 
         if self == looker or (looker.permissions.check("Admin") and not always_compare):
 
@@ -229,7 +223,7 @@ class Character(ObjectParent, DefaultCharacter):
 
             stat4 = f"|b{'IV Tokens:':>15}{ivcolor} {ivtokens_left:2n}" if ivtokens_left else ""
 
-            out = [header, stat1, stat2, stat3]
+            out += [stat1, stat2, stat3]
 
             if stat4:
                 out.append(stat4)
@@ -268,7 +262,46 @@ class Character(ObjectParent, DefaultCharacter):
             # stat4 = f" {_comparecrossstats('physical attack', 'physical defense', looker, self)}"
             # stat5 = f" {_comparecrossstats('special attack', 'special defense', looker, self)}"
 
-            out = [header, stat0, stat1, stat2, stat3, '']
+            out += [stat0, stat1, stat2, stat3, '']
+
+        return '\n'.join(out)
+    
+
+    def get_finger(self, looker=None, show_header=True, **kwargs):
+
+        out = [self.get_display_header(looker)] if show_header else []
+
+        subfaction = f"|w/|n{self.subfaction}" if self.subfaction else ""
+        fullfaction = f"{self.faction}{subfaction}"
+        lastic = time_format(self.ic_idle_time) if self.ic_idle_time else "Never"
+
+        if self.is_typeclass(PlayerCharacter):
+            if self.has_account:
+                session = self.account.sessions.get()[0]
+                on_line = f" |bOn for:|n {time_format(time.time() - session.conn_time)}"
+            else:
+                on_line = (
+                    " |bLast on:|n " + time_format(time.time() - self.last_puppeted) if self.last_puppeted else "Never"
+                )
+            playertype = "Player"
+        else:
+            playertype = "Owner"
+            on_line = "|b<NOT PLAYER CHARACTER>|n"
+        
+
+        out.append(f" |w{self.short_desc}|n")
+        out.append(f" |bFull Name:|n {self.full_name}")
+        out.append(
+            f" |bSex:|n {self.sex:12}"
+            f" |bAffiliation:|n {crop(fullfaction,20,'…'):20}"
+            f" |bRank:|n {self.rank}"
+        )
+        out.append(
+            f" |b{playertype:6}:|n {crop(self.player_name,22,"…"):22}"
+            f" |bLastIC:|n {lastic:12}"
+            f"{on_line}"
+        )
+        out.append('')
 
         return '\n'.join(out)
 
@@ -529,6 +562,7 @@ class PlayerCharacter(Character):
 
     accepted_rules = AttributeProperty(False)
     approved = AttributeProperty(False)
+    approvelocked = AttributeProperty(False)
     player_mode = AttributeProperty("OOC")
     auditlog = AttributeProperty([])
     whostatus = AttributeProperty("")
@@ -656,7 +690,7 @@ class PlayerCharacter(Character):
         """Are we currently under the movelock timer?"""
         # return time.time() < self.move_lock_end_time
         return False
-    
+
 
     def at_object_creation(self):
         """
@@ -688,6 +722,10 @@ class PlayerCharacter(Character):
 
         if not self.accepted_rules and not self.permissions.check("Builder"):
             self.msg("|mYou can't be moved until you accept.|n")
+            return False
+
+        if self.approvelocked:
+            self.msg(f"{self.get_display_name(self)} |mis being examined by staff, please wait.|n")
             return False
 
         if not dest.is_typeclass("typeclasses.rooms.Room"):

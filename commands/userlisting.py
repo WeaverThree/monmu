@@ -85,7 +85,7 @@ class CmdWho(MuxCommand):
                 "|wName|n",
                 "|wOn for|n",
                 "|wIdle|n",
-                "|wIcIdle|n",
+                "|wLastIC|n",
                 "|wLocation|n",
                 "|wMode|n",
                 "|wStatus|n",

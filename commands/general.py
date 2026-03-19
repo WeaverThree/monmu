@@ -3,7 +3,7 @@ import time
 
 from .command import Command, MuxCommand
 from world.utils import split_on_all_newlines, get_wordcount
-from typeclasses.characters import Character
+from typeclasses.characters import Character, PlayerCharacter
 
 class CmdOOC(Command):
     """
@@ -72,8 +72,6 @@ class CmdOOC(Command):
                 line.strip()
                 out.append(otherline + line + " ({sender})" if line else "")
             
-
-
         location.msg_contents('\n'.join(out), mapping={'sender': self.caller}, from_obj=self.caller)
 
 
@@ -147,6 +145,7 @@ class CmdStats(Command):
     key = "+stats"
     aliases = ["+sheet", "+compare"]
     locks = "cmd:all()"
+    help_category = "People"
 
     def func(self):
 
@@ -168,3 +167,79 @@ class CmdStats(Command):
         sheet = target.get_statblock(caller, always_compare=always_compare)
 
         self.msg(text=(sheet, {"type": "stats"}), options=None)
+
+
+class CmdFinger(Command):
+    """
+    Get extra info about a player and their character. Unlike other examination commands, this one
+    can target anyone anywhere.
+
+    Usage:
+      +finger <player character>
+    """
+
+    key = "+finger"
+    locks = "cmd:all()"
+
+    def func(self):
+
+        caller = self.caller
+
+        args = self.args.strip()
+
+        if not args:
+            self.msg("Usage: +finger <player character>")
+            return
+        
+        if args in ('self', 'me'):
+            target = caller
+        else:
+            search = PlayerCharacter.objects.search(args)
+            if not search:
+                self.msg(f"Couldn't find player character '{args}'.")
+                return
+            if len(search) != 1:
+                self.msg(f"Got multiple hits for '{args}'. This shouldn't happen. Please notify staff.")
+                return
+            target = search[0]
+
+        finger = target.get_finger(caller)
+        
+        self.msg(text=(finger, {"type": "finger"}), options=None)
+
+
+class CmdFullLook(Command):
+    """
+    Get all details about a creature in one go. 
+
+    Usage:
+      +fulllook [creature]
+    """
+
+    key = "+fulllook"
+    aliases = "+flook"
+    locks = "cmd:all()"
+    help_category = "People"
+
+    def func(self):
+
+        caller = self.caller
+        args = self.args.strip()
+        if not args:
+            target = caller
+        else:
+            target = caller.search(args) #, typeclass=Character)
+            if not target:
+                return
+            if not target.is_typeclass(Character):
+                # Because searching by typeclass isn't working fsr
+                self.msg(f"{target.get_display_name()} isn't something that can have stats or finger data.")
+                return
+            
+        # always_compare = True if self.cmdstring.lower() == '+compare' else False
+
+        finger = target.get_finger(caller, show_header=True)
+        sheet = target.get_statblock(caller, show_header=False)
+        desc = target.return_appearance(caller, show_header=False)
+
+        self.msg(text=(''.join((finger,sheet,desc)), {"type": "stats"}), options=None)

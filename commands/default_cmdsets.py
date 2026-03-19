@@ -121,6 +121,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(general.CmdOOC())
         self.add(general.CmdSpoof())
         self.add(general.CmdStats())
+        self.add(general.CmdFinger())
+        self.add(general.CmdFullLook())
         self.add(mons.CmdMonTypes()) 
         self.add(mons.CmdRandMons())
         self.add(mons.CmdMoveLookup())
