@@ -221,7 +221,7 @@ class Character(ObjectParent, DefaultCharacter):
                 f"|b{'Ability:':>15}|n {self.ability}"
             )
 
-            stat4 = f"|b{'IV Tokens:':>15}{ivcolor} {ivtokens_left:2n}" if ivtokens_left else ""
+            stat4 = f"|b{'IV Tokens:':>15}{ivcolor} {ivtokens_left:2n}|n" if ivtokens_left else ""
 
             out += [stat1, stat2, stat3]
 
