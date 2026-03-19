@@ -63,7 +63,7 @@ class Room(ObjectParent, DefaultRoom):
     def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
 
         if moved_obj.is_typeclass(PlayerCharacter):
-            if moved_obj.player_mode not in ("DOWN", "JAIL", "AUP"):
+            if moved_obj.player_mode not in ("DOWN", "JAIL"):
                 zone = self.tags.get(category="Zone", return_list=True)
                 if zone and zone[0] != 'ooc' and not moved_obj.account.permissions.check('Builder'):
                     if moved_obj.player_mode != "IC":

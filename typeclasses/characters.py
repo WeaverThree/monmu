@@ -529,7 +529,7 @@ class PlayerCharacter(Character):
 
     accepted_rules = AttributeProperty(False)
     approved = AttributeProperty(False)
-    player_mode = AttributeProperty("AUP")
+    player_mode = AttributeProperty("OOC")
     auditlog = AttributeProperty([])
     whostatus = AttributeProperty("")
     stafftag = AttributeProperty("")
@@ -643,7 +643,7 @@ class PlayerCharacter(Character):
     @property 
     def ic_idle_time(self):
         """How long since this character said something in character."""
-        return time.time() - self.last_ic_talk_time
+        return time.time() - self.last_ic_talk_time if self.last_ic_talk_time else 0
 
 
     @property
@@ -665,9 +665,6 @@ class PlayerCharacter(Character):
         """
         
         self.logaudit(f"{self.name} created.")
-
-        # Not real but want to have something that isn't the start of the universe
-        self.last_ic_talk_time = time.time()
 
         # For the character-focused channel system
         self.locks.add("msg:all()")

@@ -12,6 +12,7 @@ from world.monutils import get_display_mon_name, get_display_mon_type, get_displ
 
 _WIDTH = settings.OUR_WIDTH
 
+
 class CmdWho(MuxCommand):
     """
     list who is currently online
@@ -69,7 +70,7 @@ class CmdWho(MuxCommand):
             names.append(utils.crop(name, width=25))
             durations.append(utils.time_format(time.time() - session.conn_time, 1))
             idles.append(utils.time_format(time.time() - session.cmd_last_visible, 0))
-            icidles.append(utils.time_format(puppet.ic_idle_time, 0))
+            icidles.append(utils.time_format(puppet.ic_idle_time, 0) if puppet.ic_idle_time else "Never")
             locations.append(puppet.location.key if puppet and puppet.location else "|[R|X---|n")
             modes.append(puppet.player_mode)
             statuses.append(utils.crop(puppet.whostatus,50,"…") if puppet else "")
