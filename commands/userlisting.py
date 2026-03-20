@@ -184,6 +184,7 @@ class CmdWhat(MuxCommand):
             border_width=0,                              
         )
         table.reformat_column(1,align='c')
+        table.reformat_column(2,align="a")
 
         self.msg(f"\n{table}\n  {naccounts} online. Use |bwho|n for more details about people.")
 
