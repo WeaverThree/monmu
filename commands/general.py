@@ -162,6 +162,10 @@ class CmdStats(Command):
                 self.msg(f"{target.get_display_name()} isn't something that can have stats.")
                 return
             
+        if not target.access(self, "view"):
+            self.msg(f"Could not view '{target.get_display_name(caller)}'.")
+            return
+            
         always_compare = True if self.cmdstring.lower() == '+compare' else False
 
         sheet = target.get_statblock(caller, always_compare=always_compare)
@@ -203,6 +207,10 @@ class CmdFinger(Command):
                 return
             target = search[0]
 
+        if not target.access(self, "view"):
+            self.msg(f"Could not view '{target.get_display_name(caller)}'.")
+            return
+
         finger = target.get_finger(caller)
         
         self.msg(text=(finger, {"type": "finger"}), options=None)
@@ -236,10 +244,16 @@ class CmdFullLook(Command):
                 self.msg(f"{target.get_display_name()} isn't something that can have stats or finger data.")
                 return
             
-        # always_compare = True if self.cmdstring.lower() == '+compare' else False
+        if not target.access(self, "view"):
+            self.msg(f"Could not view '{target.get_display_name(caller)}'.")
+            return
+   
+        if target.is_typeclass(PlayerCharacter):
+            target.msg(f"{caller.get_display_name(target)} just looked at {target.get_display_name(target)}.")
+
 
         finger = target.get_finger(caller, show_header=True)
         sheet = target.get_statblock(caller, show_header=False)
         desc = target.return_appearance(caller, show_header=False)
 
-        self.msg(text=(''.join((finger,sheet,desc)), {"type": "stats"}), options=None)
+        self.msg(text=(''.join((finger,sheet,'\n',desc)), {"type": "stats"}), options=None)

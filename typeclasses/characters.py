@@ -271,8 +271,8 @@ class Character(ObjectParent, DefaultCharacter):
 
         out = [self.get_display_header(looker)] if show_header else []
 
-        subfaction = f"|w/|n{self.subfaction}" if self.subfaction else ""
-        fullfaction = f"{self.faction}{subfaction}"
+        # subfaction = f"|w/|n{self.subfaction}" if self.subfaction else ""
+        # fullfaction = f"{self.faction}{subfaction}"
         lastic = time_format(self.ic_idle_time) if self.ic_idle_time else "Never"
 
         if self.is_typeclass(PlayerCharacter):
@@ -293,7 +293,7 @@ class Character(ObjectParent, DefaultCharacter):
         out.append(f" |bFull Name:|n {self.full_name}")
         out.append(
             f" |bSex:|n {self.sex:12}"
-            f" |bAffiliation:|n {crop(fullfaction,20,'…'):20}"
+            f" |bAffiliation:|n {self.faction:20}"
             f" |bRank:|n {self.rank}"
         )
         out.append(
