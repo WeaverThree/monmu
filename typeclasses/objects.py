@@ -95,7 +95,7 @@ class ObjectParent:
     def drop_old_talkers(self):
         now = time.time()
         for talker in self.ic_talkers_loc.keys():
-            if self.ic_talkers_loc[talker] - now > _TALKERS_LIST_HOLD_TIME:
+            if now - self.ic_talkers_loc[talker] > _TALKERS_LIST_HOLD_TIME:
                 del self.ic_talkers_loc[talker]
         
 

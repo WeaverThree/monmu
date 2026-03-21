@@ -6,18 +6,15 @@ I'm just making this public to make things easier.
 
 ---Weaver
 
-# Todo list!
+# Todo list! - MVP
 
 - ConnectInfo is leaking peoples IPs and shit
-- Character creation system
 
 - Stats.
     - EVs
     - Affiliation
         - Faction (Guild, Rogue, Merc, Unaffiliated)
         - Rank
-        - Subfaction
-- +ic +ooc
 - skill swapper object
 
 - RP vote system
@@ -35,43 +32,17 @@ I'm just making this public to make things easier.
 
     2 votes a day every day for a week = two tokens - 1 token = 1000 points
 
-
 - follow command
 - find command - list of exits to find other character
 - teleport
-- special abilities
 
-
-- Player character death 
-    - returned to home after time period with 1hp and delevling: remove 4 EV from random stat 6 times
-
-- In character home. Home takes you there
 - unlogged characters go home after 24 hours
-- rooms that you can home in
-
-- must be builder to build. might be able to desc owned rooms but not build from them
-
-- refit helper to plot runner
-    - minor powers to make NPCs
-- helper / plotrunner
-    - can make NPCs and puppets and stuff
-    - can't build, modify descs
-    - createnpc command
-    - checknpc command
-    - access to admin chargen but only allow targeting NPCs
-    
-    
-    - jail command
-
-- DARK players? Admin+ anyway?
 
 - Zone DB with names and descs
 
 - Feature field dictionary for players and locations
     - "'s" look feature
 - +use command for moves
-- Roll percent for percent moves
-- but no statistical move implementation
 
 - special teleport command for teleport users
     - other movement abilities?
@@ -83,9 +54,35 @@ I'm just making this public to make things easier.
 - Test other mu clients
 
 
+
+# Todo List - Future
+
+- jail command
+
+- DARK players? Admin+ anyway?
+
+- In character home. Home takes you there
+- rooms that you can home in
+
 - authorization keyring object
 - room claim system, lockable doors, auto updating exit names
+- must be builder to build. might be able to desc owned rooms but not build from them
 
+- Roll percent for percent moves
+- but no statistical move implementation
+
+- refit helper to plot runner
+    - minor powers to make NPCs
+- helper / plotrunner
+    - can make NPCs and puppets and stuff
+    - can't build, modify descs
+    - createnpc command
+    - checknpc command
+    - access to admin chargen but only allow targeting NPCs
+
+- Player character death 
+    - returned to home after time period with 1hp and delevling: remove 4 EV from random stat 6 times
+    
 - Economy
     - Consumables
         - Reusable item references?
@@ -96,6 +93,7 @@ I'm just making this public to make things easier.
     - Rank based rooms for guild?
     - Shop / business ownership, for rogues?
 
+- Subfaction
 
 # Notes
 
