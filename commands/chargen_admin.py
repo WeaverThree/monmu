@@ -6,6 +6,7 @@ from django.conf import settings
 from .command import MuxCommand, Command
 from evennia import GLOBAL_SCRIPTS
 from evennia.utils import string_suggestions, display_len
+from evennia.comms.models import ChannelDB
 
 from typeclasses.characters import Character, PlayerCharacter
 
@@ -18,6 +19,7 @@ _STARTING_MOVES = settings.STARTING_MOVES
 _MAX_EQUIPPED_MOVES = settings.MAX_EQUIPPED_MOVES
 _MIN_DESC = settings.DESIRED_MIN_DESC
 _TAG_OOC_TARGET = settings.TAG_OOC_TARGET
+_ADD_ON_APPROVE_CHANNELS = settings.ADD_ON_APPROVE_CHANNELS
 
 
 class CmdAdminSetSpecies(MuxCommand):
@@ -840,6 +842,11 @@ class CmdAdminApproveCharacter(MuxCommand):
         
         target.approve(caller)
         self.msg(f"{target.get_display_name(caller)} approved.")
+
+        for chankey in _ADD_ON_APPROVE_CHANNELS:
+            channel = ChannelDB.objects.get_channel(chankey)
+            if not channel or not (channel.access(target, "listen") and channel.connect(target)):
+                self.msg(f"|rCould not add {target.get_display_name(target)} to channel '{chankey}'!|n")
 
         if len(target.moves_known) > len(target.moves_equipped) and len(target.moves_equipped) < _MAX_EQUIPPED_MOVES:
 

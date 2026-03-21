@@ -177,7 +177,7 @@ DEFAULT_CHANNELS = [
 STARTING_CHANNELS = ["Incoming"]
 REMOVE_ON_ACCEPT_CHANNELS = ["Incoming"]
 ADD_ON_ACCEPT_CHANNELS = ["Public"]
-ADD_ON_AUTHORIZE_CHANNELS = ["Guild", "Rogue", "Mercenary"]
+ADD_ON_APPROVE_CHANNELS = ["Guild", "Rogue", "Mercenary"]
 
 
 
