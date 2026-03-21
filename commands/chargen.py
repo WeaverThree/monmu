@@ -14,11 +14,26 @@ from world.monutils import type_vuln_table, get_display_mon_name, get_display_mo
 _MAX_EQUIPPED_MOVES = settings.MAX_EQUIPPED_MOVES
 _STARTING_MOVES = settings.STARTING_MOVES
 _MIN_DESC = settings.DESIRED_MIN_DESC
+
 _ALREADY_APPROVED_MSG = (
     "{target} |mis already approved (or being checked for approval).|n\n" 
     "Please ask staff if you want to change anything "
     "that you can't still change by yourself. Thanks!|n"
 )
+_VALID_FIELDS = {
+    "full name": "full name", 
+    "fullname": "full name", 
+    "fname": "full name",
+    "short desc": "short desc", 
+    "shortdesc": "short desc", 
+    "sdesc": "short desc",
+    "player name": "player name", 
+    "playername": "player name",
+    "pname": "player name",
+    "player contact": "player contact",
+    "playercontact": "player contact",
+    "pcontact": "player contact",
+}
 
 def _wrapif(start, middle, end, cond):
     return f"{start if cond else ''}{middle}{end if cond else ''}"
@@ -613,20 +628,6 @@ class CmdChargenForgetMove(MuxCommand):
         self.msg(f"{target.get_display_name(self.caller)} forgot {actual_movename}.")
 
 
-_valid_fields = {
-    "full name": "full name", 
-    "fullname": "full name", 
-    "fname": "full name",
-    "short desc": "short desc", 
-    "shortdesc": "short desc", 
-    "sdesc": "short desc",
-    "player name": "player name", 
-    "playername": "player name",
-    "pname": "player name",
-    "player contact": "player contact",
-    "playercontact": "player contact",
-    "pcontact": "player contact",
-}
 
 class CmdChargenSetInfo(MuxCommand):
     """
@@ -665,11 +666,11 @@ class CmdChargenSetInfo(MuxCommand):
             return      
             
         field = field.lower()
-        if not field in _valid_fields:
+        if not field in _VALID_FIELDS:
             self.msg(f"'{field}' is not a valad field")
             return
         
-        field = _valid_fields[field]
+        field = _VALID_FIELDS[field]
         if field == 'full name':
             target.full_name = text
         elif field == 'short desc':

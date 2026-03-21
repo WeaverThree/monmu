@@ -12,7 +12,7 @@ from typeclasses.characters import Character, PlayerCharacter
 from world.utils import get_specialroom, get_defaulthome
 from world.monutils import get_display_mon_banner
 
-from .chargen import _MAX_EQUIPPED_MOVES
+from .chargen import _VALID_FIELDS
 
 _STARTING_MOVES = settings.STARTING_MOVES
 _MAX_EQUIPPED_MOVES = settings.MAX_EQUIPPED_MOVES
@@ -629,11 +629,125 @@ class CmdAdminForgetMove(MuxCommand):
         self.caller.msg(f"{target.get_display_name(self.caller)} forgot {actual_movename}.")
 
 
+class CmdChargenAdminSetInfo(MuxCommand):
+    """
+    Set a piece of extended info on a character
 
+    For valid fields and current settings run with just a target.
 
+    Usage:
+        @setinfo <target> [= field : value]
+    """
+    key = '@setinfo'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
 
+    _usage = "Usage: @setinfo <target> [= field : value]"
 
+    def func(self):
+        
+        if not self.lhs:
+            self.msg(self._usage)
+            return
 
+        target = self.caller.search(self.lhs)
+        
+        if not target:
+            return
+        
+        if not target.is_typeclass(Character):
+            self.msg("This command only works on characters.")
+            return
+        
+        if not self.rhs:
+            short_desc = target.short_desc
+            full_name = target.full_name
+            player_name = target.player_name
+            player_contact = target.player_contact
+
+            self.msg(
+                f"Fields settable by this command as seen on {target.get_display_name()}:\n"
+                f" |wShort Description/sdesc|n: |b{short_desc if short_desc else "<NOT SET>"}|n\n"
+                f" |wFull Name/fname        |n: |b{full_name if full_name else "<NOT SET>"}|n\n"
+                f" |wPlayer Name/pname      |n: |b{player_name if player_name else "<NOT SET>"}|n\n"
+                f" |wPlayer Contact/pcontact|n: |b{player_contact if player_contact else "<NOT SET>"}|n"
+            )
+            return      
+
+        rargs = self.rhs.split(':',1)
+
+        if len(rargs) != 2:
+            self.msg(self._usage)
+            return
+        
+        field, text = rargs
+            
+        field = field.lower()
+        if not field in _VALID_FIELDS:
+            self.msg(f"'{field}' is not a valad field")
+            return
+        
+        field = _VALID_FIELDS[field]
+        if field == 'full name':
+            target.full_name = text
+        elif field == 'short desc':
+            target.short_desc = text
+        elif field == 'player name':
+            target.player_name = text
+        elif field == 'player contact':
+            target.player_contact = text
+
+        self.msg(f"{target.get_display_name(self.caller)} updated.")
+        
+
+class CmdChargenAdminSetSex(MuxCommand):
+    """
+    Set your character's apparent sex.
+
+    Do you appear |wM|nale, |wF|nemale, |wA|nndrogynous, |wN|neuter.
+
+    Usage:
+        @setsex <target> [= sex]
+    """
+    key = '@setsex'
+    locks = "cmd:perm(Admin)"
+    help_category = "Chargen"
+
+    _usage = "Usage: @setsex <target> [= sex]"
+
+    def func(self):
+        
+        if not self.lhs:
+            self.msg(self._usage)
+            return
+
+        target = self.caller.search(self.lhs)
+        
+        if not target:
+            return
+        
+        if not target.is_typeclass(Character):
+            self.msg("This command only works on characters.")
+            return
+        
+        if not self.rhs:
+            sex = target.sex
+            self.msg(f"{target.get_display_name()}'s apparent sex is |b{sex if sex else '<NOT SET>'}|n.")
+
+        field = self.rhs.lower()
+        if field.startswith('a'):
+            target.sex = 'Androgynous'
+        elif field.startswith('f'):
+            target.sex = 'Female'
+        elif field.startswith('m'):
+            target.sex = 'Male'
+        elif field.startswith('n'):
+            target.sex = 'Neuter'
+        else:
+            self.msg("Please pick from |bandrogynous|n, |bfemale|n, |bmale|n, |bneuter|n.")
+            return
+
+        self.msg(f"{target.get_display_name(self.caller)} is now {target.sex}.")
 
 
 class CmdAdminApproveCharacter(MuxCommand):
