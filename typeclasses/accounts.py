@@ -58,7 +58,8 @@ LOGIN_THROTTLE = Throttle(
     name="login", limit=settings.LOGIN_THROTTLE_LIMIT, timeout=settings.LOGIN_THROTTLE_TIMEOUT
 )
 
-
+_MUDINFO_CHANNEL = None
+_CONNECT_CHANNEL = None
 
 
 class Account(DefaultAccount):
@@ -276,7 +277,45 @@ class Account(DefaultAccount):
 
 
 
+    # Override to get rid of dates from ocnnetion messages.
+    def _send_to_connect_channel(self, message):
+        """
+        Helper method for loading and sending to the comm channel dedicated to
+        connection messages. This will also be sent to the mudinfo channel.
 
+        Args:
+            message (str): A message to send to the connect channel.
+
+        """
+        global _MUDINFO_CHANNEL, _CONNECT_CHANNEL
+        if _MUDINFO_CHANNEL is None:
+            if settings.CHANNEL_MUDINFO:
+                try:
+                    _MUDINFO_CHANNEL = ChannelDB.objects.get(db_key=settings.CHANNEL_MUDINFO["key"])
+                except ChannelDB.DoesNotExist:
+                    logger.log_trace()
+            else:
+                _MUDINFO = False
+        if _CONNECT_CHANNEL is None:
+            if settings.CHANNEL_CONNECTINFO:
+                try:
+                    _CONNECT_CHANNEL = ChannelDB.objects.get(
+                        db_key=settings.CHANNEL_CONNECTINFO["key"]
+                    )
+                except ChannelDB.DoesNotExist:
+                    logger.log_trace()
+            else:
+                _CONNECT_CHANNEL = False
+
+        # if settings.USE_TZ:
+        #     now = timezone.localtime()
+        # else:
+        #     now = timezone.now()
+        # now = "%02i-%02i-%02i(%02i:%02i)" % (now.year, now.month, now.day, now.hour, now.minute)
+        if _MUDINFO_CHANNEL:
+            _MUDINFO_CHANNEL.msg(f"{message}")
+        if _CONNECT_CHANNEL:
+            _CONNECT_CHANNEL.msg(f"{message}")
 
 
 

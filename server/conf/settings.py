@@ -71,8 +71,14 @@ REGISTRATION_PASSTOKEN = None # Please put me in secret_settings.py - string wit
 
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Pokémorph Below 2.0α"
+
 BASE_CHARACTER_TYPECLASS = "typeclasses.characters.PlayerCharacter"
 COMMAND_DEFAULT_CLASS = "commands.command.MuxCommand"
+
+# We're only overriding this to stop the IP vomit on the connectinfo channel.
+SERVER_SESSION_HANDLER_CLASS = "misc.sessionhandler.MonServerSessionHandler"
+
+
 
 
 # Global scripts started here will be available through 'evennia.GLOBAL_SCRIPTS.key'. The scripts
