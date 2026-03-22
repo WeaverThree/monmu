@@ -78,6 +78,8 @@ COMMAND_DEFAULT_CLASS = "commands.command.MuxCommand"
 # We're only overriding this to stop the IP vomit on the connectinfo channel.
 SERVER_SESSION_HANDLER_CLASS = "misc.sessionhandler.MonServerSessionHandler"
 
+# This is JUST to handle the disconnect bug in 6.0.0
+TELNET_PROTOCOL_CLASS = "misc.telnet_override.TelnetProtocol"
 
 
 
