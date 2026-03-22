@@ -30,13 +30,13 @@ I'm just making this public to make things easier.
 
     2 votes a day every day for a week = two tokens - 1 token = 1000 points
 
-- follow command
-- find command - list of exits to find other character
 - teleport
 
 - unlogged characters go home after 24 hours
 
 - Zone DB with names and descs
+
+ - figure out what to do with what
 
 - Feature field dictionary for players and locations
     - "'s" look feature

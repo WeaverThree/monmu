@@ -11,6 +11,7 @@ creation commands.
 import time
 import random
 import math
+from collections import deque
 
 from django.db.models import Q 
 from django.conf import settings
@@ -169,6 +170,9 @@ class Character(ObjectParent, DefaultCharacter):
 
     last_puppeted = AttributeProperty(0)
     last_ic_room = AttributeProperty(None)
+
+    following = AttributeProperty(None, category='follow')
+    followers = AttributeProperty(set(), category='follow')
 
 
 
@@ -417,6 +421,73 @@ class Character(ObjectParent, DefaultCharacter):
         if movename in self.moves_known:
             self.moves_known.remove(movename)
 
+    def start_following(self, target):
+        
+        if self.following:
+            if self.following == target:
+                target.followers.add(self) # just in case >.>
+                self.msg(f"{self.get_display_name(self)} was already following {target.get_display_name(self)}.")
+                target.msg(f"{self.get_display_name(target)} was already following {target.get_display_name(target)}.")
+                return
+            else:
+                self.stop_following(self.following)
+        
+        if self.location != target.location:
+            self.msg("Can't follow someone who isn't here.")
+
+        # make sure we don't go cyclic
+        checked_targets = set()
+        unchecked_targets = deque()
+
+        unchecked_targets.append(target.following)
+        while unchecked_targets:
+            subfollower = unchecked_targets.pop()
+            if subfollower not in checked_targets:
+                if subfollower == self:
+                    self.msg(
+                        f"{self.get_display_name(self)} following {target.get_display_name(self)} "
+                        "would make a cycle, sorry!"
+                    )
+                    target.msg(
+                        f"{self.get_display_name(target)} following {target.get_display_name(target)} "
+                        "would make a cycle, sorry!"
+                    )
+                    return
+
+                checked_targets.add(subfollower)
+                if subfollower:
+                    unchecked_targets.append(subfollower.following)
+        
+
+
+
+        self.following = target
+        target.followers.add(self)
+        self.msg(f"{self.get_display_name(self)} is now following {target.get_display_name(self)}.")
+        target.msg(f"{self.get_display_name(target)} is now following {target.get_display_name(target)}.")
+
+
+    def stop_following(self, target=None):
+        
+        if not self.following:
+            return
+        
+        if target and self.following != target:
+            self.msg(f"{self.get_display_name(self)} was never following {target.get_display_name(self)}.")
+            target.msg(f"{self.get_display_name(target)} was never following {target.get_display_name(target)}.")
+        
+        self.msg(f"{self.get_display_name(self)} stops following {self.following.get_display_name(self)}.")
+        self.following.msg(
+            f"{self.get_display_name(self.following)} stops following {self.following.get_display_name(self.following)}."
+        )
+
+        if self in self.following.followers:
+            self.following.followers.remove(self)
+        self.following = None
+        
+
+
+
 
     @property
     def is_dead(self):
@@ -548,6 +619,28 @@ class Character(ObjectParent, DefaultCharacter):
             )
             self.db.prelogout_location = self.location # Just in case
             self.last_puppeted = time.time()
+
+
+    def at_pre_move(self, destination, move_type="move", **kwargs):
+        if move_type != "traverse":
+            # follow code won't work so drop followers
+            for follower in self.followers:
+                follower.stop_following(self)
+
+        
+        return super().at_pre_move(destination, move_type, **kwargs)
+
+    def at_post_move(self, source_location, move_type="move", **kwargs):
+        
+        if self.following:
+            if self.following.location != self.location:
+                # We wanderd off or got separated.
+                self.stop_following(self.following)
+   
+        super().at_post_move(source_location, move_type, **kwargs)
+
+
+
 
     def announce_move_from(self, destination, msg=None, mapping=None, move_type="move", **kwargs):
         """

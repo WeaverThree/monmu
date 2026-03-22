@@ -322,3 +322,39 @@ class CmdTeleportIC(Command):
             caller.last_ic_room = None
         else:
             caller.msg(f"|mSomething went wrong with moving {caller.get_display_name(caller)}")
+
+
+class CmdFollow(Command):
+    """
+    Follow another character. Call with no argument to stop following.
+
+    Usage:
+        follow [creature]
+        follow
+    """
+
+    key = "follow"
+    locks = "cmd:all()"
+
+    def func(self):
+
+        caller = self.caller
+        args = self.args.strip()
+        if not args:
+            if not caller.following:
+                self.msg(f"{caller.get_display_name(caller)} is not following anyone.")
+            caller.stop_following()
+            return
+        
+        target = caller.search(args)
+        if not target:
+            return
+        if target == caller:
+            self.msg("Can't follow self")
+            return
+        if not target.is_typeclass(Character):
+            # Because searching by typeclass isn't working fsr
+            self.msg(f"{target.get_display_name()} can't be followed.")
+            return
+        
+        caller.start_following(target)

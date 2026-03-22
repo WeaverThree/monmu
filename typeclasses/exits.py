@@ -10,6 +10,7 @@ for allowing Characters to traverse the exit to its destination.
 from evennia.objects.objects import DefaultExit
 
 from .objects import ObjectParent
+from commands.special import FollowExitCommand
 
 
 class Exit(ObjectParent, DefaultExit):
@@ -18,6 +19,8 @@ class Exit(ObjectParent, DefaultExit):
     they defines the `destination` property and overrides some hooks
     and methods to represent the exits.
     """
+
+    exit_command = FollowExitCommand
 
     def get_display_name(self, looker, **kwargs):
         """
