@@ -186,20 +186,7 @@ def moves_table(movelist, usedlist=None, useheader=True):
         priorities.append(prio)
 
         uses = move['uses']
-        if used is not None:
-            remain = uses - used
-            if remain <= 0:
-                color = '|[R|X'
-            elif remain < uses / 4:
-                color = '|r'
-            elif remain < uses / 2:
-                color = '|y'
-            else:
-                color = ''
-            remaintext = f"{color}{remain}{'|n' if color else ''}/"
-        else:
-            remaintext = ''
-        useslist.append(f"{remaintext}{uses}")
+        useslist.append(color_uses_text(uses,used))
 
         pot = move['potentcy']
         pot = pot if pot else "---"
@@ -229,3 +216,53 @@ def moves_table(movelist, usedlist=None, useheader=True):
     table.reformat_column(6, align="r", width=5)
 
     return table
+
+
+def single_move(movename, used=None):
+    mondata = GLOBAL_SCRIPTS.mondata
+
+    move = mondata.moves[movename]
+
+    name = move['name']
+    typename = mondata.types[move['type']]['colorname'].lower()
+    category = move['category'].lower()
+    uses = move['uses']
+    
+    acc = move['accuracy']
+    acc = acc if acc else "---"
+    acc = "∞" if acc == 999 else acc
+    
+    pot = move['potentcy']
+    pot = pot if pot else "---"
+    pot = "∞" if pot == 999 else pot
+    if move['category'] == "Status" and pot == "---": # TODO: STUPID
+        pot = ""
+    else:
+        pot = f", Pow {pot}"
+
+    prio = move['priority']
+    if prio:
+        prio = f", Prio |b+{prio}|x" if prio > 0 else f"|r{prio}|n"
+    else:
+        prio = ""
+
+    out = f"the {typename} {category} move {name}. |x(Acc {acc}{pot}, PP {uses}{prio})|n"
+    return out
+
+
+def color_uses_text(uses,used,returncolor='|n'):
+    if used is not None:
+        remain = uses - used
+        if remain <= 0:
+            color = '|r'
+        elif remain < uses / 4:
+            color = '|R'
+        elif remain < uses / 2:
+            color = '|Y'
+        else:
+            color = ''
+        remaintext = f"{color}{remain}{returncolor if color else ''}/"
+    else:
+        remaintext = ''
+    usetext = (f"{remaintext}{uses}")
+    return usetext

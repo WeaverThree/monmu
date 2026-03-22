@@ -232,7 +232,8 @@ class MonData(Script):
             vs = {x:float(y) for x,y in zip(self.typenames, row[3:-1])}
 
             newtype = {'name':name, 'token':token, 'short':short, 'color':color, 'vs':vs,
-                       'colortoken':f"{color}{token:^6}|n", 'doubletoken':f"{color}{name.upper():^12}|n"}
+                       'colortoken':f"{color}{token:^6}|n", 'doubletoken':f"{color}{name.upper():^12}|n",
+                       'colorname':f"|#{color[3:9]}{name}|n"}
             self.types[name] = newtype
             self.typelookup[name.lower()] = name
             self.typelookup[token.lower()] = name

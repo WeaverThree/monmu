@@ -7,7 +7,7 @@ from .command import MuxCommand, Command
 from evennia import GLOBAL_SCRIPTS
 from evennia.utils import evtable, string_suggestions
 
-from world.monutils import type_vuln_table, get_display_mon_banner, moves_table
+from world.monutils import type_vuln_table, get_display_mon_banner, moves_table, single_move, color_uses_text
 
 
 class CmdMonTypes(Command):
@@ -213,3 +213,65 @@ class CmdRandMoves(Command):
 
         self.caller.msg(f"\n|w - - - {count} Random Moves - - -|n\n{table}")
 
+
+class CmdUseMove(Command):
+    """
+    Use a move, reducing it's PP until the next refresh.
+
+    Usage:
+        +use <move>
+    """
+    key = '+use'
+    locks = "cmd:all()"
+    help_category = "Mons"
+    
+    _usage = "Usage: +use <move>"
+
+    def func(self):
+        mondata = GLOBAL_SCRIPTS.mondata
+
+        caller = self.caller
+
+        movename = self.args.strip()
+
+        if not movename:
+            self.msg(
+                f"{caller.get_display_name(self.caller)} has these moves equipped: "
+                f"{', '.join(sorted(caller.moves_equipped.keys()))}."
+            )
+            return
+        
+        movename = movename.lower()
+
+        if movename in mondata.movelookup:
+            actual_movename = mondata.movelookup[movename]
+        else:
+            self.msg(
+                f"Could not find a move named '{movename}'. "
+                f"{caller.get_display_name(self.caller)} has these moves equipped: "
+                f"{', '.join(sorted(caller.moves_equipped.keys()))}."
+            )
+            return
+        
+        if actual_movename not in caller.moves_equipped:
+            
+            self.msg(
+                f"{caller.get_display_name(self.caller)} doesn't have {actual_movename} equipped. "
+                f"{caller.get_display_name(self.caller)} has these moves equipped: "
+                f"{', '.join(sorted(caller.moves_equipped.keys()))}."
+            )
+            return
+        
+        move = mondata.moves[actual_movename]
+        used = caller.moves_equipped[actual_movename]
+        if used + 1 > move['uses']:
+            self.msg(f"{caller.get_display_name(caller)} doesn't have the PP left to use {actual_movename} right now.")
+            return
+        
+        caller.moves_equipped[actual_movename] += 1
+
+        used += 1
+
+        movetext = "{sender} used " + single_move(actual_movename)
+        caller.location.msg_contents(movetext, mapping={'sender': caller})
+        caller.msg(f"    |x(PP Remaining: {color_uses_text(move['uses'],used,"|x")})|n")
