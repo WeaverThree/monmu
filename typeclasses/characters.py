@@ -967,8 +967,19 @@ class PlayerCharacter(Character):
         Setup default channels and messaging permissions that now live on characters instead of
         accounts.
         """
+        super().at_object_creation() 
         
         self.logaudit(f"{self.name} created.")
+
+        home = get_specialroom(settings.TAG_START_LOCATION)
+        home = home if home else get_defaulthome()
+
+        # Have to do this some obscure-ass way because of how the function that calls us works.
+
+        if hasattr(self, '_createdict'):
+            self._createdict['home'] = home
+        else:
+            self._createdict = {'home': home}
 
         # For the character-focused channel system
         self.locks.add("msg:all()")
@@ -984,7 +995,6 @@ class PlayerCharacter(Character):
             if not channel or not (channel.access(self, "listen") and channel.connect(self)):
                 logger.log_err(f"New character '{self.key}' could not connect to default channel '{chankey}'!")
 
-        return super().at_object_creation() # Not sure if return part is needed but
 
     
 

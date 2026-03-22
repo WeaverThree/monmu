@@ -26,6 +26,7 @@ from commands import (
 )
 
 from evennia.commands.default import building as default_building
+from evennia.commands.default import account as default_account
 
 class Room(ObjectParent, DefaultRoom):
     """
@@ -137,6 +138,7 @@ class AUPRoomCmdSet(evennia.CmdSet):
         self.add(default_building.CmdTag())
         self.add(building.CmdZone())
         self.add(building.CmdSetSpecialRoom())
+        self.add(default_account.CmdQuit())
 
 
 

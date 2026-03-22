@@ -85,6 +85,8 @@ class CmdAcceptPolicy(Command):
         if not destination:
             destination = get_defaulthome()
 
+        caller.home = get_defaulthome()
+
         if not caller.move_to(destination, move_type="teleport"):
             self.msg("|mCould not move you out of here, please contact staff.|n")
             
