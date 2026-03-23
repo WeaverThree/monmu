@@ -12,21 +12,7 @@ from evennia.objects.objects import DefaultRoom
 from .objects import ObjectParent
 from .characters import PlayerCharacter
 
-from commands import (
-    chargen, 
-    admin_overrides, 
-    general, 
-    general_overrides, 
-    comms_overrides, 
-    system_overrides,
-    building_overrides,
-    userlisting,
-    help_overrides,
-    building,
-)
 
-from evennia.commands.default import building as default_building
-from evennia.commands.default import account as default_account
 
 class Room(ObjectParent, DefaultRoom):
     """
@@ -123,6 +109,25 @@ class AUPRoomCmdSet(evennia.CmdSet):
     priority = 100
     
     def at_cmdset_creation(self):
+
+        # Import these here to avoid potential circular imports at the module level that might be
+        # some kind of freaky race condition 
+
+        from commands import (
+            chargen, 
+            admin_overrides, 
+            general, 
+            general_overrides, 
+            comms_overrides, 
+            system_overrides,
+            building_overrides,
+            userlisting,
+            help_overrides,
+            building,
+        )
+
+        from evennia.commands.default import building as default_building
+        from evennia.commands.default import account as default_account
         
         self.add(chargen.CmdAcceptPolicy())
 
