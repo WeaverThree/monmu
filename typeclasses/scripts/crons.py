@@ -9,7 +9,7 @@ from evennia.utils import logger
 
 from . import Script
 
-from typeclasses.characters import PlayerCharacter
+from typeclasses.characters import PlayerCharacter, Character
 
 class Crons(Script):
     key = 'crons'
@@ -26,6 +26,11 @@ class Crons(Script):
 
         if not self.next_sweep:
             self.next_sweep = time.time() + settings.SWEEP_CHECK_TIME
+        if not self.next_refresh:
+            nexttime = datetime.datetime.combine(
+                datetime.date.today() + datetime.timedelta(days=1),
+                datetime.time(hour=settings.REFRESH_HOUR))
+            self.next_refresh = nexttime.timestamp()
 
 
     def clear_approve_locks(self):
@@ -86,4 +91,24 @@ class Crons(Script):
 
 
     def refresh(self):
-        print ("Do refresh here")
+
+        nexttime = datetime.datetime.combine(
+            datetime.date.today() + datetime.timedelta(days=1),
+            datetime.time(hour=settings.REFRESH_HOUR))
+        self.next_refresh = nexttime.timestamp()
+
+        for character in Character.objects.all_family():
+            refreshed = character.refresh_all()
+            if refreshed:
+                if character.has_account:
+                    character.msg (
+                        f"|MDaily refresh! The PP of all of|n {character.get_display_name(character)}|M's "
+                        "moves has been restored!|n."
+                    )
+                else:
+                    character.register_post_command_message(
+                        f"|MDaily refresh happened while you were away. All of|n "
+                        f"{character.get_display_name(character)}|M's moves had their PP restored.|n"
+                    )
+ 
+

@@ -32,21 +32,15 @@ I'm just making this public to make things easier.
 
 - teleport
 
-- unlogged characters go home after 24 hours
-
 - Zone DB with names and descs
 
  - figure out what to do with what
 
 - Feature field dictionary for players and locations
     - "'s" look feature
-- +use command for moves
 
 - special teleport command for teleport users
     - other movement abilities?
-
-- daily refresh
-- 24-hour sleepers
 
 - Figure out what we're going to do about UTF characters
 - Test other mu clients
@@ -77,6 +71,8 @@ I'm just making this public to make things easier.
     - createnpc command
     - checknpc command
     - access to admin chargen but only allow targeting NPCs
+
+- total pp shown on moves used and staff levels 
 
 - Player character death 
     - returned to home after time period with 1hp and delevling: remove 4 EV from random stat 6 times
