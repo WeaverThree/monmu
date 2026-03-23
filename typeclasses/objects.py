@@ -103,6 +103,8 @@ class ObjectParent:
         """Register a message for display after the current command. Forwards to the object's account."""
         if self.has_account:
             self.account.register_post_command_message(message)
+        elif self.is_typeclass("typeclasses.characters.Character") and self.last_puppeted_by:
+            self.last_puppeted_by.register_post_command_message(message)
 
 
     def get_display_desc(self, looker=None, **kwargs):

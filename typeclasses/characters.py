@@ -169,6 +169,8 @@ class Character(ObjectParent, DefaultCharacter):
     rank = AttributeProperty("Nobody")
 
     last_puppeted = AttributeProperty(0)
+    last_puppeted_by = AttributeProperty(None)
+
     last_ic_room = AttributeProperty(None)
 
     following = AttributeProperty(None, category='follow')
@@ -619,6 +621,7 @@ class Character(ObjectParent, DefaultCharacter):
             )
             self.db.prelogout_location = self.location # Just in case
             self.last_puppeted = time.time()
+            self.last_puppeted_by = account
 
 
     def at_pre_move(self, destination, move_type="move", **kwargs):
@@ -680,6 +683,8 @@ class Character(ObjectParent, DefaultCharacter):
                 string = "{object} disappears in a digital flash from {origin}, heading for {destination}."
             elif move_type == 'teleport':
                 string = "{object} disappears in an unexpected way from {origin}, heading for {destination}."
+            elif move_type == 'sweep':
+                string = "{object} is gently swept away from {origin} to their home at {destination}."
             else:
                 string = "{object} is leaving {origin}, heading for {destination}."
 
@@ -749,8 +754,10 @@ class Character(ObjectParent, DefaultCharacter):
             else:
                 if move_type == "ic-ooc":
                     string = "{object} appears in a digital flash at {destination}, from {origin}."
-                if move_type == "teleport":
+                elif move_type == "teleport":
                     string = "{object} appears in an unexpected way at {destination}, from {origin}."
+                elif move_type == "sweep":
+                    string = "{object} is gently deposited by the sweeper at {destination}, from {origin}."
                 else:
                     string = "{object} arrives in {destination} from {origin}."
         else:

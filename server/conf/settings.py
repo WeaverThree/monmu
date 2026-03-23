@@ -41,6 +41,9 @@ RP_TRAP_IDLE_TIME = 60 * 5
 GENERAL_IDLE_TIME = 60 * 10 # How long until names go dim from idle
 TALKERS_LIST_HOLD_TIME = 60 * 60 * 6 # 6 hours
 
+SWEEP_TIME = 60 * 60 * 24 # How long you have to be offline in a SWEEP room before you're taken home.
+SWEEP_CHECK_TIME = 60 * 5 # How often to run the sleeper sweep check
+
 OUR_WIDTH = 74 # This controls monmu customized stuff, not evennia default
 DESIRED_MIN_DESC = 255 # Bitch when descriptions are shorter
 
@@ -62,6 +65,8 @@ TAG_JAIL_LOCATION = "jail"
 TAG_OOC_TARGET = "ooctarget"
 TAG_SLEEPER_SWEEPER_DEST = "sleeperhome"
 TAG_START_LOCATION = "spawn"
+
+ROOM_TAG_NOSWEEP = "nosweep"
 
 REGISTRATION_PASSTOKEN = None # Please put me in secret_settings.py - string with no spaces
 
@@ -92,7 +97,7 @@ GLOBAL_SCRIPTS = {
     # 'key': {'typeclass': 'typeclass.path.here',
     #         'repeats': -1, 'interval': 50, 'desc': 'Example script'},
     'mondata': {'typeclass': 'typeclasses.scripts.mondata.MonData',},
-    'crons': {'typeclass': 'typeclasses.scripts.crons.Crons',},
+    'crons': {'typeclass': 'typeclasses.scripts.crons.Crons', 'repeats': -1, 'interval': 3},
 }
 
 
