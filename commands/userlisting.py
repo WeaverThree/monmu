@@ -1,6 +1,7 @@
 
 import time
 import math
+from collections import defaultdict
 
 from django.conf import settings  # type: ignore
 
@@ -10,7 +11,8 @@ from evennia.utils.ansi import ANSIString
 
 from .command import Command, MuxCommand
 from typeclasses.accounts import Account
-from world.utils import header_two_slot
+from typeclasses.characters import PlayerCharacter
+from world.utils import header_two_slot, is_staff_character
 from world.monutils import get_display_mon_banner, get_inline_mon_banner_nodex
 
 _WIDTH = settings.OUR_WIDTH
@@ -263,8 +265,78 @@ class CmdGlance(MuxCommand):
         self.msg('\n'.join(out))
 
 
+class CmdRoster(MuxCommand):
+    """
+    How many of each mon type have been created in the game world.
+    Excludes staff creatures.
 
+    Switches:
+        /bycount - Sort by count, then by dexno.
+        /onecol - For narrow terminals
+    
+    Usage:
+        +roster
+        +roster/bycount
+    """
 
+    key = "+roster"
+    locks = "cmd:all()"
+    help_category = "People"
+
+    def func(self):
+
+        mondata = evennia.GLOBAL_SCRIPTS.mondata
+
+        mons = defaultdict(int)
+
+        for character in PlayerCharacter.objects.all_family():
+            mon = {}
+            if not character.species:
+                continue
+            if is_staff_character(character):
+                continue
+            
+            key = (character.dexno, character.subtype, character.form)
+
+            mons[key] += 1
+
+        out = []
+
+        if 'bycount' in self.switches:
+            order = sorted(mons, key=lambda m:(mons[m],m))
+        else:
+            order = sorted(mons)
+
+        for key in order:
+            count = mons[key]
+            dexno, subtype, form = key
+            subtype = subtype if subtype else '-'
+            form = form if form else '-'
+            
+            mon = mondata.search_mons(dexno, subtype, form)
+
+            if len(mon) != 1:
+                self.msg(f"Error looking up {dexno}, {subtype}, {form}.")
+
+            mon = mon[0]
+
+            count = "#" * count if count < 5 else count
+
+            out.append(f" {count:>5} {get_display_mon_banner(mon)}")
+        
+        if not 'onecol' in self.switches:
+            half = math.ceil(len(out) / 2.0)
+            table = evtable.EvTable(table=(out[:half],out[half:]), border_width=0)
+            table.reformat_column(0, align='a')
+            table.reformat_column(1, align='a')
+        else:
+            table = evtable.EvTable(table=(out,), border_width=0)
+            table.reformat_column(0, align='a')
+
+        header = header_two_slot(_WIDTH, "|wServer Type Roster|n", headercolor="|M")
+        
+        self.caller.msg(f"{header}\n{table}\n")
+            
 
 
 def _getpuppet(account):

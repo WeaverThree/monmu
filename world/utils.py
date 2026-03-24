@@ -100,3 +100,11 @@ def get_defaulthome():
 def is_unpuppted_pc(obj):
     """To filter out player characters that are logged out against most modifying commands with a custom message."""
     return obj and obj.is_typeclass("typeclasses.characters.PlayerCharacter") and not obj.has_account
+
+
+def is_staff_character(char):
+    return (
+        (char.permissions.check("Builder")) or
+        (char.account and char.permissions.check("Builder")) or
+        (char.last_puppeted_by and char.last_puppeted_by.permissions.check("Builder"))
+    )

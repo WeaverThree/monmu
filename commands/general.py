@@ -4,7 +4,7 @@ import time
 from django.conf import settings
 
 from .command import Command, MuxCommand
-from world.utils import split_on_all_newlines, get_wordcount, get_defaulthome, get_specialroom
+from world.utils import split_on_all_newlines, get_wordcount, get_defaulthome, get_specialroom, is_staff_character
 from typeclasses.characters import Character, PlayerCharacter
 
 _TAG_OOC_TARGET = settings.TAG_OOC_TARGET
@@ -361,13 +361,6 @@ class CmdFollow(Command):
         caller.start_following(target)
 
 
-def _is_staff_character(char):
-    return (
-        (char.permissions.check("Builder")) or
-        (char.account and char.permissions.check("Builder")) or
-        (char.last_puppeted_by and char.last_puppeted_by.permissions.check("Builder"))
-    )
-
 class CmdVote(Command):
     """
     Vote for another character's good RP, rewarding them with EV XP. You can do this once per person
@@ -387,7 +380,7 @@ class CmdVote(Command):
         caller = self.caller
         votes_cast_today = caller.votes_cast_today
 
-        if _is_staff_character(caller):
+        if is_staff_character(caller):
             self.msg("Staff creatures are not eligible for the voting system.")
             return
 
@@ -417,7 +410,7 @@ class CmdVote(Command):
             # Because searching by typeclass isn't working fsr
             self.msg(f"{target.get_display_name(caller)} is not a player creature and can't be voted for.")
             return
-        if _is_staff_character(target):
+        if is_staff_character(target):
             self.msg(
                 f"{caller.get_display_name(caller)} can't vote for {target.get_display_name(caller)} "
                 "because staff creatures are not eligible for the voting system."
