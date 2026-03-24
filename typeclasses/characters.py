@@ -290,32 +290,43 @@ class Character(ObjectParent, DefaultCharacter):
         if self.is_typeclass(PlayerCharacter):
             if self.has_account:
                 session = self.account.sessions.get()[0]
-                on_line = f" |bOn for:|n {time_format(time.time() - session.conn_time)}"
+                on_line = f" |b On for:|n {time_format(time.time() - session.conn_time):>10}"
             else:
                 on_line = (
                     " |bLast on:|n " + time_format(time.time() - self.last_puppeted) if self.last_puppeted else "Never"
                 )
             playertype = "Player"
         else:
-            playertype = "Owner"
-            on_line = "|b<NOT PLAYER CHARACTER>|n"
+            playertype = " Owner"
+            on_line = "----------"
         
 
         out.append(f" |w{self.short_desc}|n")
-        out.append(f" |bFull Name:|n {self.full_name}")
         out.append(
-            f" |bAffiliation:|n {self.faction:20}"
-            f" |bRank:|n {self.rank}"
+            f" |bFull Name:|n {crop(self.full_name, 41, "…"):41}"
+            f" |bIC Words:|n{self.ic_wordcount:11,d}"
         )
         out.append(
-            f" |b{playertype:6}:|n {crop(self.player_name,22,"…"):22}"
-            f" |bLastIC:|n {lastic:12}"
+            f" |bFaction:|n {crop(self.faction, 12, "…"):12}"
+            f" |bRank:|n {crop(self.rank, 26, "…"):26}"
+            f" |bLastIC:|n {lastic:>10}"
+        )
+        out.append(
+            f" |b{playertype:6}:|n {crop(self.player_name,45,"…"):45}"
             f"{on_line}"
         )
+        if looker == self or looker.permissions.check("Admin"):
+            out.append(f" |yContact Info:|n {self.player_contact}")
+            
         out.append('')
 
         return '\n'.join(out)
 
+# 12345678901234567890123456789012345678901234567890123456789012345678901234
+#  Full Name: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IC Words: 12,456,890
+#  Faction: Unaffiliated Rank: xxxxxxxxxxxxxxxxxxxxxxxxxx LastIC: 123d 00:18       
+#  Player: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Last On: 123d 00:35
+#  Contact Info: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
     def reset_ivs(self, caller=None):
 
