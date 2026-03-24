@@ -27,7 +27,7 @@ from evennia.utils.ansi import ANSI_PARSER
 from .objects import ObjectParent
 
 from world.utils import header_two_slot, anyone_notice, get_specialroom, get_defaulthome
-from world.monutils import get_display_mon_banner, moves_table
+from world.monutils import get_display_mon_banner, moves_table, get_inline_mon_banner
 
 _WIDTH = settings.OUR_WIDTH
 _IV_TOKEN_BUDGET = settings.CHARACTER_IV_TOKEN_BUDGET
@@ -35,6 +35,7 @@ _RP_TRAP_MOVE_DELAY = settings.RP_TRAP_MOVE_DELAY
 _RP_TRAP_IDLE_TIME = settings.RP_TRAP_IDLE_TIME
 _GENERAL_IDLE_TIME = settings.GENERAL_IDLE_TIME
 _TAG_OOC_TARGET = settings.TAG_OOC_TARGET
+_VOTE_XP = settings.VOTE_XP
 
 _display_statname = {
     'health': 'Health',
@@ -148,8 +149,12 @@ class Character(ObjectParent, DefaultCharacter):
 
     evs = AttributeProperty({})
     evtokens = AttributeProperty(0)
+    evtokens_xp = AttributeProperty(0)
     evtokens_spent = AttributeProperty(0)
-    
+
+    votes_cast_today = AttributeProperty(set())
+    votes_received_today = AttributeProperty(set())
+
     moves_known = AttributeProperty(set())
     moves_equipped = AttributeProperty({})
 
@@ -226,7 +231,7 @@ class Character(ObjectParent, DefaultCharacter):
             evcolor = '|r' if evtokens_left else '|n'
 
             stat3 = (
-                f"|b{'EV Tokens:':>15}{evcolor} {evtokens_left:2n} "
+                f"|b{'EV Tokens:':>15}{evcolor} {evtokens_left:2n}.{self.evtokens_xp:03d} "
                 f"|b{'Ability:':>15}|n {self.ability}"
             )
 
@@ -395,6 +400,11 @@ class Character(ObjectParent, DefaultCharacter):
         self.ivtokens_spent += amount
         self.update_stats()
 
+    def spend_ev_tokens(self, caller, stat, amount):
+        
+        self.evs[stat] += amount * 4
+        self.evtokens_spent += amount
+        self.update_stats()
     
     def equip_move(self, caller, movename):
         """ Assumes caller is doing all the vetting """
@@ -424,7 +434,7 @@ class Character(ObjectParent, DefaultCharacter):
             self.moves_known.remove(movename)
 
 
-    def refresh_one(self, movename):
+    def refresh_one_move(self, movename):
         """Refreshes a move. Returns true if a refresh actually happened, false if uses were already at 0"""
         
         if movename in self.moves_equipped:
@@ -435,10 +445,48 @@ class Character(ObjectParent, DefaultCharacter):
         return False
             
 
-    def refresh_all(self):
+    def refresh_all_moves(self):
         """Refreshes all moves. Returns true if any rereshes happened, false if all uses were at 0"""
 
-        return any([self.refresh_one(movename) for movename in self.moves_equipped])
+        return any([self.refresh_one_move(movename) for movename in self.moves_equipped])
+
+    
+    def refresh_votes(self):
+        """Refreshes daily votes. Returns true if anything happened, false if we hadn't used a vote."""
+        ret = len(self.votes_cast_today)
+        self.votes_cast_today = set()
+        self.votes_received_today = set()
+
+        return ret
+
+
+    def accept_vote(self, voter):
+        """Returns true if vote accepted, false if not (already voted by voter)."""
+
+        if voter in self.votes_received_today:
+            return False
+        else:
+            idx = len(self.votes_received_today)
+            # Take last element if we're past the end of the list
+            try:
+                xp = _VOTE_XP[idx]
+            except IndexError:
+                xp = _VOTE_XP[-1]
+
+            self.votes_received_today.add(voter)
+            
+            self.msg(f"{voter.get_display_name(self)} |Mjust voted for you, giving you {xp} EV XP!|n")
+
+            logger.log_file(f"{voter.name} voted for {self.name}.", "vote.log")
+
+            self.evtokens_xp += xp
+            while self.evtokens_xp > 1000:
+                self.evtokens_xp -= 1000
+                self.evtokens += 1
+                self.msg("|MNew EV Token received. Spend it with |b+buyevs|M.|n")
+            
+            return True
+
 
 
     def start_following(self, target):
@@ -477,9 +525,6 @@ class Character(ObjectParent, DefaultCharacter):
                 checked_targets.add(subfollower)
                 if subfollower:
                     unchecked_targets.append(subfollower.following)
-        
-
-
 
         self.following = target
         target.followers.add(self)
@@ -506,9 +551,6 @@ class Character(ObjectParent, DefaultCharacter):
         self.following = None
         
 
-
-
-
     @property
     def is_dead(self):
         """Is remaing hp <= 0?"""
@@ -527,6 +569,7 @@ class Character(ObjectParent, DefaultCharacter):
             return True
         return self.idle_time > _GENERAL_IDLE_TIME
     
+
     @property
     def is_comms_idle(self):
         """
@@ -651,6 +694,7 @@ class Character(ObjectParent, DefaultCharacter):
         
         return super().at_pre_move(destination, move_type, **kwargs)
 
+
     def at_post_move(self, source_location, move_type="move", **kwargs):
         
         if self.following:
@@ -659,8 +703,6 @@ class Character(ObjectParent, DefaultCharacter):
                 self.stop_following(self.following)
    
         super().at_post_move(source_location, move_type, **kwargs)
-
-
 
 
     def announce_move_from(self, destination, msg=None, mapping=None, move_type="move", **kwargs):
@@ -861,8 +903,8 @@ class PlayerCharacter(Character):
         super().set_species(caller, mon, ability)
 
         msg = (
-            f"{caller.get_display_name(looker=self)} updated {self.get_display_name(looker=self)}'s "
-            f"species to {get_display_mon_banner(mon)} with an ability of {ability}."
+            f"{caller.get_display_name(self)} updated {self.get_display_name(self)}'s "
+            f"species to {get_inline_mon_banner(mon)} with an ability of {ability}."
         )
         self.logaudit(msg)
         if caller != self:
@@ -873,7 +915,7 @@ class PlayerCharacter(Character):
         super().set_nature(caller, nature)
 
         msg = (
-            f"{caller.get_display_name(looker=self)} updated {self.get_display_name(looker=self)}'s "
+            f"{caller.get_display_name(self)} updated {self.get_display_name(self)}'s "
             f"nature to {nature['name']}."
         )
         self.logaudit(msg)
@@ -885,9 +927,21 @@ class PlayerCharacter(Character):
         super().spend_iv_tokens(caller, stat, amount)
 
         msg = (
-            f"{caller.get_display_name(looker=self)} spent {amount} of {self.get_display_name(looker=self)}'s "
-            f"IV tokens to raise {stat} IVs from {self.ivs[stat] - amount * 3} to {self.ivs[stat]}. "
+            f"{caller.get_display_name(self)} spent {amount} of {self.get_display_name(self)}'s "
+            f"IV tokens to raise {stat}'s IVs from {self.ivs[stat] - amount * 3} to {self.ivs[stat]}. "
             f"{self.ivtokens - self.ivtokens_spent} IV tokens remain."
+        )
+        self.logaudit(msg)
+        if caller != self:
+            self.msg(msg)
+
+
+    def spend_ev_tokens(self, caller, stat, amount):
+        super().spend_ev_tokens(caller, stat, amount)
+
+        msg = (
+            f"{caller.get_display_name(self)} spent {amount} of {self.get_display_name(self)}'s "
+            f"EV tokens to raise {stat}'s EVs from {self.ivs[stat] - amount * 4} to {self.ivs[stat]}. "
         )
         self.logaudit(msg)
         if caller != self:

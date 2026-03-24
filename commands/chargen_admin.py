@@ -11,7 +11,7 @@ from evennia.comms.models import ChannelDB
 from typeclasses.characters import Character, PlayerCharacter
 
 from world.utils import get_specialroom, get_defaulthome
-from world.monutils import get_display_mon_banner
+from world.monutils import get_display_mon_banner, get_inline_mon_banner
 
 from .chargen import _VALID_FIELDS
 
@@ -64,6 +64,7 @@ class CmdAdminSetSpecies(MuxCommand):
 
         if not monname:
             self.caller.msg(self._usage)
+            return
 
         mons = mondata.search_mons(monname,subtype,form)
 
@@ -108,21 +109,21 @@ class CmdAdminSetSpecies(MuxCommand):
                 return
             
 
-        self.caller.msg(f"Selected {get_display_mon_banner(mon)}")
+        self.caller.msg(f"Selected {get_inline_mon_banner(mon)}")
 
         all_abilities = [abi for abi in mon['abilities'] if abi]
         all_abilities.extend([abi for abi in mon['hidden_abilities'] if abi])
 
         if not all_abilities:
             ability = ""
-            self.caller.msg(f"{get_display_mon_banner(mon)} has no abilities.")
+            self.caller.msg(f"{get_inline_mon_banner(mon, True)} has no abilities.")
         elif len(all_abilities) == 1:
             ability = all_abilities[0]
-            self.caller.msg(f"{get_display_mon_banner(mon)} only has ability '{ability}', selecting it.")
+            self.caller.msg(f"{get_inline_mon_banner(mon, True)} only has ability '{ability}', selecting it.")
         else:
             idx = 1
             choices = []
-            out = [f"{get_display_mon_banner(mon)} has these abilities available:"]
+            out = [f"{get_inline_mon_banner(mon, True)} has these abilities available:"]
             for abi in mon['abilities']: 
                 if abi:
                     out.append(f" - {idx} - Ability: {abi}")
@@ -295,7 +296,7 @@ class CmdAdminBuyIVs(MuxCommand):
             amount -= 1
         
         if not amount:
-            self.caller.msg(f"{target}'s {stat} is already maxed out!")
+            self.msg(f"{target.get_display_name(self.caller)}'s {stat}'s IVs are already maxed out!")
             return
         
         question = (

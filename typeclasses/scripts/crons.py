@@ -98,17 +98,31 @@ class Crons(Script):
         self.next_refresh = nexttime.timestamp()
 
         for character in Character.objects.all_family():
-            refreshed = character.refresh_all()
-            if refreshed:
-                if character.has_account:
-                    character.msg (
-                        f"|MDaily refresh! The PP of all of|n {character.get_display_name(character)}|M's "
-                        "moves has been restored!|n."
-                    )
-                else:
+            online_msg = []
+            offline_msg = []
+            if character.refresh_all_moves():
+                online_msg.append(
+                    f"|MThe PP of all of|n {character.get_display_name(character)}|M's moves has been restored!|n"
+                )
+                offline_msg.append(
+                    f"|MAll of|n {character.get_display_name(character)}|M's moves had their PP restored.|n"
+                )
+
+            if character.refresh_votes():
+                online_msg.append(
+                    f"{character.get_display_name(character)}|M's daily votes have been restored!|n"
+                )
+                offline_msg.append(
+                    f"{character.get_display_name(character)}|M's daily votes were restored.|n"
+                )
+
+            if character.has_account:
+                if online_msg:
+                    character.msg (f"|MDaily refresh!|n {' '.join(online_msg)}")
+            else:
+                if offline_msg:
                     character.register_post_command_message(
-                        f"|MDaily refresh happened while you were away. All of|n "
-                        f"{character.get_display_name(character)}|M's moves had their PP restored.|n"
+                        f"|MDaily refresh happened while you were away.|n {' '.join(offline_msg)}"
                     )
  
 

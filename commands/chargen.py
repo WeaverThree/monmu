@@ -9,11 +9,14 @@ from evennia.comms.models import ChannelDB
 from evennia.utils import evtable, string_suggestions, logger, display_len
 
 from world.utils import get_defaulthome, get_specialroom
-from world.monutils import type_vuln_table, get_display_mon_name, get_display_mon_type, get_display_mon_banner
+from world.monutils import get_inline_mon_banner, get_display_mon_banner
 
 _MAX_EQUIPPED_MOVES = settings.MAX_EQUIPPED_MOVES
 _STARTING_MOVES = settings.STARTING_MOVES
 _MIN_DESC = settings.DESIRED_MIN_DESC
+
+_MAX_EV_CHARACTER = settings.MAX_EV_CHARACTER
+_MAX_EV_STAT = settings.MAX_EV_STAT
 
 _ALREADY_APPROVED_MSG = (
     "{target} |mis already approved (or being checked for approval).|n\n" 
@@ -134,6 +137,7 @@ class CmdChargenSetSpecies(Command):
 
         if not monname:
             self.msg(self._usage)
+            return
 
         mons = mondata.search_mons(monname,subtype,form)
 
@@ -177,21 +181,21 @@ class CmdChargenSetSpecies(Command):
                 self.msg("|xAborted.|n")
                 return
 
-        self.msg(f"Selected {get_display_mon_banner(mon)}")
+        self.msg(f"Selected {get_inline_mon_banner(mon)}")
 
         all_abilities = [abi for abi in mon['abilities'] if abi]
         all_abilities.extend([abi for abi in mon['hidden_abilities'] if abi])
 
         if not all_abilities:
             ability = ""
-            self.msg(f"{get_display_mon_banner(mon)} has no abilities.")
+            self.msg(f"{get_inline_mon_banner(mon, True)} has no abilities.")
         elif len(all_abilities) == 1:
             ability = all_abilities[0]
-            self.msg(f"{get_display_mon_banner(mon)} only has ability '{ability}', selecting it.")
+            self.msg(f"{get_inline_mon_banner(mon, True)} only has ability '{ability}', selecting it.")
         else:
             idx = 1
             choices = []
-            out = [f"{get_display_mon_banner(mon)} has these abilities available:"]
+            out = [f"{get_inline_mon_banner(mon, True)} has these abilities available:"]
             for abi in mon['abilities']: 
                 if abi:
                     out.append(f" - {idx} - Ability: {abi}")
@@ -358,7 +362,7 @@ class CmdChargenBuyIVs(MuxCommand):
             amount -= 1
         
         if not amount:
-            self.msg(f"{target}'s {stat} is already maxed out!")
+            self.msg(f"{target.get_display_name(self.caller)}'s {stat}'s IVs are already maxed out!")
             return
         
         question = (
@@ -874,4 +878,93 @@ class CmdChargen(Command):
         self.msg('\n'.join(out))
         
         
+class CmdChargenBuyEVs(MuxCommand):
+    """
+    Usage:
+        +buyevs <stat> = <tokens to spend>
+    """
+    key = '+buyevs'
+    aliases = ['+spendevs']
+    locks = "cmd:all()"
+    help_category = "Chargen"
 
+    _usage = "Usage: +buyevs <stat> = <tokens to spend>"
+
+    def func(self):
+        mondata = GLOBAL_SCRIPTS.mondata
+    
+        target = self.caller
+
+        if not (target.access(self.caller, "control") or target.access(self.caller, "edit")):
+            # Should never happen, but
+            self.msg(f"You don't have permission to work on {target.name}.")
+            return
+
+        remaining = target.evtokens - target.evtokens_spent
+        if not remaining:
+            self.msg(f"{target.get_display_name(self.caller)} has no EV tokens to spend.")
+            return
+        
+        stat = self.lhs.lower()
+        amount = self.rhs
+
+        if not (stat and amount):
+            self.msg(self._usage)
+            self.msg(
+                f"{target.get_display_name(self.caller)} has |r{remaining}|n EV tokens left to spend. "
+                f"Use |b+stats|n to see what's up."
+            )
+            return
+
+        if stat not in mondata.lookup_statlist:
+            self.msg(f"'{stat}' is not a valid stat.")
+            return
+
+        stat = mondata.lookup_statlist[stat]
+        
+        try:
+            amount = int(amount)
+        except ValueError:
+            self.msg(f"Tokens to spend must be a positive integer")
+            return
+        
+        if not 0 <= amount:
+            self.msg(f"Tokens to spend must be a positive integer")
+            return
+        
+        amount_stat = min(amount, remaining)
+        while amount_stat and amount_stat * 4 + target.evs[stat] > _MAX_EV_STAT:
+            amount_stat -= 1
+        
+        if not amount_stat:
+            self.msg(f"{target.get_display_name(self.caller)}'s {stat}'s EVs is already maxed out at {_MAX_EV_STAT}!")
+            return
+        
+        amount_char = min(amount, remaining)
+        char_evs = sum(target.evs.values())
+        while amount_char and amount_char * 4 + char_evs > _MAX_EV_CHARACTER:
+            amount_char -= 1
+        
+        if not amount_char:
+            self.msg(
+                f"{target.get_display_name(self.caller)}'s total EVs are already maxed out at {_MAX_EV_CHARACTER}!"
+            )
+            return
+        
+        amount = min(amount_stat, amount_char)
+        
+        question = (
+            f"Spend {amount} of {target.get_display_name(looker=self.caller)}'s {remaining} " 
+            f"remaining EV tokens to raise "
+            f"{stat}'s EVs from {target.evs[stat]} to {target.evs[stat] + amount * 4}? [y/N]"
+        )
+
+        answer = yield question
+
+        if not answer.strip().lower().startswith('y'):
+            self.msg("|xAborted.|n")
+            return
+        
+        target.spend_ev_tokens(self.caller, stat, amount)
+
+        self.msg(f"{target.get_display_name(looker=self.caller)} updated.")

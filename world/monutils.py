@@ -130,6 +130,36 @@ def get_display_mon_type(mon):
         return types[type1]['colortoken'] + types[type2]['colortoken']
     
 
+def get_inline_mon_type(mon, capstart=False):
+
+    from typeclasses.characters import Character
+
+    # We're distingushing betweend dicts and characters here so can't use is_typeclass
+    if not mon: 
+        type1 = None
+        type2 = None
+    elif isinstance(mon, Character):
+        type1 = mon.type1
+        type2 = mon.type2
+    else:
+        type1 = mon['type1']
+        type2 = mon['type2']
+
+    types = GLOBAL_SCRIPTS.mondata.types
+    if not type1:
+        return f"|r{'unknown-type'}|n"
+    
+    if capstart:
+        name1 = types[type1]['colorname']
+    else:
+        name1 = types[type1]['colorname'].lower()
+
+    if not type2:
+        return f"{name1}-type"
+    else:
+        return f"{name1}|w/|n{types[type2]['colorname'].lower()}-type"
+
+
 def get_display_mon_banner(mon):
 
     from typeclasses.characters import Character
@@ -141,6 +171,18 @@ def get_display_mon_banner(mon):
         return f"{get_display_mon_type(mon)} #{mon.dexno if mon.dexno else '?'} {get_display_mon_name(mon)}"
     else:
         return f"{get_display_mon_type(mon)} #{mon['dexno']} {get_display_mon_name(mon)}"
+    
+def get_inline_mon_banner(mon, capstart=False):
+
+    from typeclasses.characters import Character
+
+    # We're distingushing betweend dicts and characters here so can't use is_typeclass
+    if not mon:
+        return f"{get_inline_mon_type(mon, capstart)} #? {get_display_mon_name(mon)}"
+    elif isinstance(mon, Character):
+        return f"{get_inline_mon_type(mon, capstart)} #{mon.dexno if mon.dexno else '?'} {get_display_mon_name(mon)}"
+    else:
+        return f"{get_inline_mon_type(mon, capstart)} #{mon['dexno']} {get_display_mon_name(mon)}"
 
 
 def moves_table(movelist, usedlist=None, useheader=True):

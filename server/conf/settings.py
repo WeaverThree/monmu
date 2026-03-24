@@ -35,7 +35,14 @@ CHARACTER_IV_TOKEN_BUDGET = math.ceil((6 * 16) / 3)
 STARTING_MOVES = 3
 MAX_EQUIPPED_MOVES = 6
 
-REFRESH_HOUR = 3 # Hour of the day when PP are refreshed
+MAX_EV_CHARACTER = 508
+MAX_EV_STAT = 252
+
+VOTES_PER_DAY = 2 # How many characters can a person vote for
+
+VOTE_XP = [125, 150] # Final repeats. Increase fixed at 1000xp
+
+REFRESH_HOUR = 3 # Hour of the day when PP and votes are refreshed
 
 RP_TRAP_MOVE_DELAY = 15 # Seconds
 RP_TRAP_IDLE_TIME = 60 * 5 
