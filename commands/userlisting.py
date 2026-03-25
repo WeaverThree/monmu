@@ -199,56 +199,22 @@ class CmdGlance(MuxCommand):
 
         caller = self.caller
 
-        # data = []
-        # shortdescs = []
-        # header = (
-        #     "|wData|n",
-        #     "|wShort Description|n",
-        # )
-        # table = evtable.EvTable(
-        #     *header, table=(data, shortdescs),
-        #     border_width=0, width=140,                              
-        # )
-
-        # maxline = 0
-
-        # for character in sorted(caller.location.contents_get(content_type="character"), key = lambda x: x.name.lower()):
-            
-        #     line1 = f"{character.faction} {character.rank} {character.get_display_name(caller)}"
-        #     line2 = f"{get_display_mon_banner(character)}"
-
-        #     data = evtable.EvCell(f"{line1}\n{line2}\n")
-
-        #     maxline = max(maxline, display_len(line1), display_len(line2))
-            
-        #     table.add_row(data, character.short_desc)
-
-        # table.reformat_column(0, align='a', valign='t', width=45)
-        # table.reformat_column(1, valign='t')
-        
-        # headercenter = "< In This Room >"
-        # headerleft = ">-"
-        # headerright = "--"
-        # fill = _WIDTH - display_len(headercenter) - display_len(headerleft) - display_len(headerright)
-        # fill1 = math.ceil(fill/2.0)
-        # fill2 = math.floor(fill/2.0)
-        # header = f"{headerleft}{'-' * fill1}{headercenter} ----
-
-        out = [header_two_slot(
+        header = header_two_slot(
             _WIDTH, f"|wGlancing Around {caller.location.get_display_name(caller)}|n", headercolor="|M"
-        )]
+        )
+
+        table = evtable.EvTable(border_width=0, valign='t')
 
         for character in sorted(caller.location.contents_get(content_type="character"), key = lambda x: x.name.lower()):
-            out.append(
-                f"    {character.get_display_name(caller)}: "
-                f"{get_inline_mon_banner_nodex(character, capstart=True)} "
-                f"{character.faction} {character.rank} - "
-                f"{character.short_desc}"
-            )
-        
-        out.append('')
+            descline = f"{get_inline_mon_banner_nodex(character, capstart=True)} - {character.short_desc}"
+            if display_len(descline) <= 54:
+                descline += "\n "
+            table.add_row(character.get_display_name(caller), descline)
+            
+        table.reformat_column(0, width=18)
+        table.reformat_column(1, width=56)
 
-        self.msg('\n'.join(out))
+        self.msg(f"{header}\n{table}\n")
 
 
 class CmdRoster(MuxCommand):
