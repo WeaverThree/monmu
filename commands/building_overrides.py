@@ -49,7 +49,7 @@ class CmdDesc(COMMAND_DEFAULT_CLASS):
 
     key = "@desc"
     switch_options = ("edit",)
-    locks = "cmd:perm(desc) or perm(Builder)"
+    locks = "cmd:all()" # Rely on target locks for this one
     help_category = "Building"
 
     def edit_handler(self):
