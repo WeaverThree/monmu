@@ -38,10 +38,6 @@ _VALID_FIELDS = {
     "pcontact": "player contact",
 }
 
-def _wrapif(start, middle, end, cond):
-    return f"{start if cond else ''}{middle}{end if cond else ''}"
-
-
 class CmdAcceptPolicy(Command):
     """
     Accept the rules of this server to join.

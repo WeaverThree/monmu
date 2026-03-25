@@ -17,6 +17,7 @@ import inflect
 from django.conf import settings
 from django.utils.translation import gettext as _
 
+import evennia
 from evennia import AttributeProperty
 from evennia.objects.objects import DefaultObject
 from evennia.utils import evtable, ansi, group_objects_by_key_and_desc, make_iter, display_len, time_format
@@ -210,6 +211,8 @@ class ObjectParent:
         if not looker:
             return
         
+        zonedb = evennia.GLOBAL_SCRIPTS.zonedb
+
         roomname = self.get_display_name(looker, **kwargs),
         extra_name_info = self.get_extra_display_name_info(looker, **kwargs),
         desc = self.get_display_desc(looker, **kwargs),
@@ -220,32 +223,37 @@ class ObjectParent:
         from .rooms import Room
 
         if self.is_typeclass(Room): # Only warn about zones if it's actually a room we're in
-            zone = self.tags.get(category="Zone", return_list=True)
-            if len(zone) == 0:
+            zonetag = self.tags.get(category="Zone", return_list=True)
+            if len(zonetag) == 0:
                 builder_notice(looker, "You should zone this room.")
-            elif len(zone) != 1:
+            elif len(zonetag) != 1:
                 builder_notice(looker, "Room should only have one zone tag.")
-            if zone:
-                if zone[0] == 'ooc':
-                    # TODO: Look up zone name from zone db. Implement zone DB
-
-                    zone = 'OOC'
+            if zonetag:
+                zonetag = zonetag[0]
+                if zonetag in zonedb.zones:
+                    zname = zonedb.zones[zonetag]['name']
+                    zdesc = zonedb.zones[zonetag]['desc']
                 else:
-                    zone = string.capwords(zone[0]) 
+                    zname = ''
+                    zdesc = ''  
         else:
             zone = "Somewhere Strange"
+            zdesc = ''
 
         looktable = self.get_room_inventory(looker, kwargs)
  
         # For reasons entirely unclear to me, roomname, extra_name_info, and desc need to be
         # subscripted here...
 
-        header = header_two_slot(_WIDTH, f"|w{roomname[0]}{extra_name_info[0]}|n", f"|w{zone}|n" if zone else None)
+        header = header_two_slot(_WIDTH, f"|w{roomname[0]}{extra_name_info[0]}|n", f"|w{zname}|n" if zname else None)
 
         lasttime = time_format(time.time() - self.last_ic_talk_time_loc, 0) if self.last_ic_talk_time_loc else "Never"
         tmp_last_talk_time = f"(TMP) Last Talk: {lasttime} Wordcount here: {self.ic_wordcount_loc}"
 
-        return f"{header}\n{tmp_last_talk_time}\n{desc[0]}\n\n{looktable}{'\n' if looktable else ''}"
+        desc1 = f"{zdesc}\n|R{' -' * 37}|n\n" if zdesc else ''
+        desc2 = desc[0]
+
+        return f"{header}\n{desc1}|x{tmp_last_talk_time}|n\n{desc2}\n\n{looktable}{'\n' if looktable else ''}"
 
 
     def get_room_inventory(self, looker, kwargs):
@@ -263,7 +271,7 @@ class ObjectParent:
             else:
                 # Doing this here because it should only display in the character listing,
                 # not as any other property of the character.
-                char_names.append(char.get_display_name(looker) + " [Offline]")
+                char_names.append(char.get_display_name(looker) + " [Off]")
             
         things = self.filter_visible(self.contents_get(content_type="object"), looker, **kwargs)
         
@@ -288,9 +296,9 @@ class ObjectParent:
                 border_width=0, pad_left=0
         )
 
-        looktable.reformat_column(0,width=25)
-        looktable.reformat_column(1,width=25)
-        looktable.reformat_column(2,width=30)
+        looktable.reformat_column(0,width=23)
+        looktable.reformat_column(1,width=23)
+        looktable.reformat_column(2,width=28)
 
         return looktable
     

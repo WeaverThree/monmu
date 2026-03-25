@@ -105,6 +105,7 @@ GLOBAL_SCRIPTS = {
     # 'key': {'typeclass': 'typeclass.path.here',
     #         'repeats': -1, 'interval': 50, 'desc': 'Example script'},
     'mondata': {'typeclass': 'typeclasses.scripts.mondata.MonData',},
+    'zonedb': {'typeclass': 'typeclasses.scripts.zonedb.ZoneDB',},
     'crons': {'typeclass': 'typeclasses.scripts.crons.Crons', 'repeats': -1, 'interval': 60},
 }
 

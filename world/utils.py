@@ -108,3 +108,6 @@ def is_staff_character(char):
         (char.account and char.permissions.check("Builder")) or
         (char.last_puppeted_by and char.last_puppeted_by.permissions.check("Builder"))
     )
+
+def wrapif(start, middle, end, cond):
+    return f"{start if cond else ''}{middle}{end if cond else ''}"

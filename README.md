@@ -8,16 +8,13 @@ I'm just making this public to make things easier.
 
 # Todo list! - MVP
 
-- Affiliation
-    - Faction (Guild, Rogue, Merc, Unaffiliated)
-    - Rank
+- Way to set faction/rank
+
 - skill swapper object
 
-- teleport
+- teleport command
 
-- Zone DB with names and descs
-
- - figure out what to do with what
+- modify AUP room for minimal jail use
 
 - Feature field dictionary for players and locations
     - "'s" look feature
@@ -28,7 +25,7 @@ I'm just making this public to make things easier.
 - Figure out what we're going to do about UTF characters
 - Test other mu clients
 
-
+- change setinfo and other commands that use target=var,data or target=var:data to use target/var=data, like @set does.
 
 # Todo List - Future
 

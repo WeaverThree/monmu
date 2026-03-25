@@ -3,13 +3,15 @@ from collections import defaultdict
 
 from django.conf import settings
 import evennia
+from evennia.utils import evtable, crop, display_len
 
 from .command import MuxCommand, Command
-
 from typeclasses.rooms import Room
+from world.utils import header_two_slot, wrapif
 
 
 _VALID_ROOM_TAGS = settings.VALID_ROOM_TAGS 
+_WIDTH = settings.OUR_WIDTH
 
 class CmdZone(Command):
     """
@@ -31,20 +33,20 @@ class CmdZone(Command):
         newzone = self.args.strip().lower()
 
         if not newzone:
-            self.caller.msg(self._usage)
+            self.msg(self._usage)
             return
 
         target = self.caller.location
 
         if not target:
-            self.caller.msg(
+            self.msg(
                 "You don't seem to have a location. " 
                 "This is probably a serious problem, but get one before using this command."
             )
             return
         
         if not target.is_typeclass(Room):
-            self.caller.msg("You're not in any kind of room. This command only works on rooms. Please come again.")
+            self.msg("You're not in any kind of room. This command only works on rooms. Please come again.")
             return
 
         oldzones = target.tags.get(category="Zone", return_list=True)
@@ -53,14 +55,146 @@ class CmdZone(Command):
         elif len(oldzones) == 1:
             oldzones = oldzones[0]
         else:
-            self.caller.msg("|RFound more than one zone to replace. Fixing that.|n")
+            self.msg("|RFound more than one zone to replace. Fixing that.|n")
             oldzones = ', '.join(oldzones)
         
         target.tags.clear(category="Zone")
         target.tags.add(newzone, category="Zone")
 
-        self.caller.msg(f"Updated zone of {target.get_display_name(self.caller)} from {oldzones} to {newzone}")
+        self.msg(f"Updated zone of {target.get_display_name(self.caller)} from {oldzones} to {newzone}")
         
+
+class CmdZoneInfo(MuxCommand):
+    """
+    Sets info about a zone.
+    
+    Usage:
+        @zoneinfo -> returns information about zones that exist
+        @zoneinfo zone -> returns full info about one zone
+        @zoneinfo zone/desc=zone desc goes here
+        @zoneinfo zone/name=Zone Fullname
+    """
+
+    _usage = "USAGE: @zoneinfo [zone][/desc||/name=<data>]"
+
+    key = "@zoneinfo"
+    locks = "cmd:perm(Builder)"
+    help_category = "Building"
+
+    def func(self):
+
+        # General setup section -
+
+        zonedb = evennia.GLOBAL_SCRIPTS.zonedb
+
+        caller = self.caller
+
+        zoneuses = defaultdict(int)
+        unzoned = 0
+
+        for room in Room.objects.all_family():
+
+            zone = room.tags.get(category="Zone", return_list=True)
+            if not zone:
+                unzoned += 1
+                continue
+            elif len(zone) == 1:
+                zone = zone[0]
+            else:
+                self.msg(
+                    f"|RFound more than one zone on |n{room.get_display_name(caller)}|R. "
+                    "You should fix that. Results may be wrong until then|n"
+                )
+                zone = zone[0]
+
+            if zone not in zonedb.zones:
+                zonedb.zones[zone] = {'name': '', 'desc': ''}
+            zoneuses[zone] += 1
+        
+        # Get orphans
+        for zone in zonedb.zones:
+            if zone not in zoneuses:
+                zoneuses[zone] = 0
+
+        if not self.args:
+            # Report section -
+       
+            table = evtable.EvTable("|wRooms|n", "|wZone Tag|n", "|wZone Name|n", "|wZone Desc|n", border_width=0)
+            table.reformat_column(0, align='r')
+
+            for count, zone in reversed(sorted([(count, zone) for (zone, count) in zoneuses.items()])):
+                name = zonedb.zones[zone]['name']
+                desc = zonedb.zones[zone]['desc']
+                table.add_row(
+                    wrapif("|Y", f"{count:2d}", "|n", not count),
+                    wrapif("|Y", zone, "|n", not count),
+                    name if name else "|B<NOT SET>|n",
+                    f"{crop(desc, 50, '…')} |B[{display_len(desc)} chars]|n",
+                )
+            
+            header = header_two_slot(_WIDTH, "|wRoom Zones Report|n", headercolor="|Y")
+            unzonedline = f" |R{unzoned:5d} unzoned rooms.|n" if unzoned else ''
+            
+            self.msg(f"{header}\n{table}\n{unzonedline}\n")
+            return
+        
+        # More setup
+
+        rhs = self.rhs
+        lhs = self.lhs
+
+        split = [part.strip() for part in lhs.split('/',1)]
+        
+        targetzone = split[0]
+        action = split[1] if len(split) == 2 else None
+    
+        if not targetzone:
+            self.msg(self._usage)
+            return
+        
+        if targetzone not in zonedb.zones:
+            self.msg(f"Could not find zone '{targetzone}'.")
+            return
+        
+        # Single zone report:
+
+        if not rhs:
+            if action:
+                self.msg(self._usage)
+                return
+            
+            zone = zonedb.zones[targetzone]
+            name = zone['name']
+            desc = zone['desc']
+            count = zoneuses[targetzone]
+            
+            self.msg(
+                f" |YZone Tag:|n {targetzone:10} |YZone Name:|n {name:20} |YUsed on |b{count}|Y rooms.|n\n" 
+                f"{desc}\n"
+            )
+            return
+        
+        if rhs:
+            if action == 'name':
+                zonedb.zones[targetzone]['name'] = rhs
+                self.msg(f"Zone {targetzone} name updated.")
+            elif action == 'desc':
+                zonedb.zones[targetzone]['desc'] = rhs
+                self.msg(f"Zone {targetzone} desc updated.")
+            else:
+                self.msg(self._usage)
+                return
+
+
+
+
+
+                
+                
+            
+
+
+
 
 class CmdSetSpecialRoom(Command):
     """
