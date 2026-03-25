@@ -299,11 +299,11 @@ def single_move(movename, used=None):
 
     prio = move['priority']
     if prio:
-        prio = f", Prio |b+{prio}|x" if prio > 0 else f"|r{prio}|n"
+        prio = f", Prio |B+{prio}|x" if prio > 0 else f", Prio |R{prio}|x"
     else:
         prio = ""
 
-    out = f"the {typename} {category} move {name}. |x(Acc {acc}{pot}, PP {uses}{prio})|n"
+    out = f"the {typename} {category} move {name}. |x(Acc {acc}{pot}{prio})|n"
     return out
 
 
