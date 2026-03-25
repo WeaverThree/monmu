@@ -77,6 +77,7 @@ TAG_START_LOCATION = "spawn"
 ROOM_TAG_NOSWEEP = "nosweep"
 
 REGISTRATION_PASSTOKEN = None # Please put me in secret_settings.py - string with no spaces
+MAX_NAME_LENGTH = 16
 
 ######################################################################
 # Evennia base server config

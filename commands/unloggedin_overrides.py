@@ -75,6 +75,10 @@ class CmdUnconnectedCreate(MuxCommand):
                 return
             username, password, _ = parts
 
+        if len(username) > settings.MAX_NAME_LENGTH:
+            session.msg(f"Max name length is |b{settings.MAX_NAME_LENGTH}|n characters.")
+            return
+
         if username[0].islower():
             session.msg(
                 "Please start your name with a capital letter. " 

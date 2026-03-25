@@ -300,8 +300,8 @@ class ObjectParent:
         )
 
         looktable.reformat_column(0,width=23)
-        looktable.reformat_column(1,width=23)
-        looktable.reformat_column(2,width=28)
+        looktable.reformat_column(1,width=25)
+        looktable.reformat_column(2,width=26)
 
         return looktable
     
