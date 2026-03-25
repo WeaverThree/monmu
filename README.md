@@ -16,6 +16,8 @@ I'm just making this public to make things easier.
 
 - modify AUP room for minimal jail use
 
+- prune unused zones (no name no rooms no desc) on @zoneinfo
+
 - Feature field dictionary for players and locations
     - "'s" look feature
 

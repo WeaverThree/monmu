@@ -234,10 +234,10 @@ class ObjectParent:
                     zname = zonedb.zones[zonetag]['name']
                     zdesc = zonedb.zones[zonetag]['desc']
                 else:
-                    zname = ''
+                    zname = f'|r{zonetag}|n'
                     zdesc = ''  
         else:
-            zone = "Somewhere Strange"
+            zname = "Somewhere Strange"
             zdesc = ''
 
         looktable = self.get_room_inventory(looker, kwargs)
