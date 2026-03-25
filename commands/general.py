@@ -184,10 +184,11 @@ class CmdFinger(Command):
     can target anyone anywhere.
 
     Usage:
-      +finger <player character>
+      info <player creature>
     """
 
-    key = "+finger"
+    key = "info"
+    aliases = "finger"
     locks = "cmd:all()"
 
     def func(self):
@@ -197,7 +198,7 @@ class CmdFinger(Command):
         args = self.args.strip()
 
         if not args:
-            self.msg("Usage: +finger <player character>")
+            self.msg("Usage: +finger <player creature>")
             return
         
         if args in ('self', 'me'):
@@ -205,7 +206,7 @@ class CmdFinger(Command):
         else:
             search = PlayerCharacter.objects.search(args)
             if not search:
-                self.msg(f"Couldn't find player character '{args}'.")
+                self.msg(f"Couldn't find player creature '{args}'.")
                 return
             if len(search) != 1:
                 self.msg(f"Got multiple hits for '{args}'. This shouldn't happen. Please notify staff.")

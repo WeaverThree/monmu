@@ -26,8 +26,15 @@ from evennia.utils.ansi import ANSI_PARSER
 
 from .objects import ObjectParent
 
-from world.utils import header_two_slot, anyone_notice, get_specialroom, get_defaulthome
-from world.monutils import get_display_mon_banner, moves_table, get_inline_mon_banner
+from world.utils import header_two_slot, anyone_notice, get_specialroom, get_defaulthome, display_padright
+from world.monutils import (
+    get_display_mon_banner,
+    get_display_mon_type,
+    get_display_mon_name,
+    get_inline_mon_banner,
+    get_inline_mon_type,
+    moves_table,
+)
 
 _WIDTH = settings.OUR_WIDTH
 _IV_TOKEN_BUDGET = settings.CHARACTER_IV_TOKEN_BUDGET
@@ -281,7 +288,13 @@ class Character(ObjectParent, DefaultCharacter):
 
     def get_finger(self, looker=None, show_header=True, **kwargs):
 
-        out = [self.get_display_header(looker)] if show_header else []
+        header = header_two_slot(_WIDTH,
+            f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
+            f"#{self.dexno if self.dexno else '?'} {get_inline_mon_type(self, capstart=True)}",
+            headercolor="|b"
+        )
+
+        out = [header] if show_header else []
 
         # subfaction = f"|w/|n{self.subfaction}" if self.subfaction else ""
         # fullfaction = f"{self.faction}{subfaction}"
@@ -290,43 +303,59 @@ class Character(ObjectParent, DefaultCharacter):
         if self.is_typeclass(PlayerCharacter):
             if self.has_account:
                 session = self.account.sessions.get()[0]
-                on_line = f" |b On for:|n {time_format(time.time() - session.conn_time):>10}"
+                on_line = f"|b On for:|n{time_format(time.time() - session.conn_time):>11}"
             else:
                 on_line = (
-                    " |bLast on:|n " + time_format(time.time() - self.last_puppeted) if self.last_puppeted else "Never"
+                    f"|bLast on:|n"
+                    f"{time_format(time.time() - self.last_puppeted) if self.last_puppeted else "Never":>11}" 
                 )
             playertype = "Player"
         else:
             playertype = " Owner"
-            on_line = "----------"
+            on_line = "-" * 19
         
-
-        out.append(f" |w{self.short_desc}|n")
-        out.append(
-            f" |bFull Name:|n {crop(self.full_name, 41, "…"):41}"
-            f" |bIC Words:|n{self.ic_wordcount:11,d}"
-        )
-        out.append(
-            f" |bFaction:|n {crop(self.faction, 12, "…"):12}"
-            f" |bRank:|n {crop(self.rank, 26, "…"):26}"
-            f" |bLastIC:|n {lastic:>10}"
-        )
-        out.append(
-            f" |b{playertype:6}:|n {crop(self.player_name,45,"…"):45}"
-            f"{on_line}"
-        )
         if looker == self or looker.permissions.check("Admin"):
-            out.append(f" |yContact Info:|n {self.player_contact}")
-            
+            contactline = f"|yContact:|n {crop(self.player_contact,29,"…"):29}"
+        else:
+            contactline = ''
+
+
+        out.append(
+            f"|bName:|n {crop(self.full_name, 50, "…"):50} " +
+            display_padright(get_display_mon_name(self, showform=False, subfilter=True), 17)
+        )
+        out.append(
+            f"|bFaction:|n {crop(self.faction, 25, "…"):25}"
+            f"  |bEVs Earned:|n {self.evtokens:3d}"
+            f"   |bIC Words:|n{self.ic_wordcount:11,d}"
+        )
+        out.append(
+            f"|bRank:|n {crop(self.rank, 28, "…"):28}"
+            f"  |bLastIC:|n{lastic:>11}"
+            f" {on_line}"
+        )
+        out.append(
+            f"|b{playertype:>6}:|n {crop(self.player_name,26,"…"):26}"
+            f"  {contactline}"
+        )         
+        out.append(self.short_desc)
         out.append('')
 
         return '\n'.join(out)
 
-# 12345678901234567890123456789012345678901234567890123456789012345678901234
-#  Full Name: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IC Words: 12,456,890
-#  Faction: Unaffiliated Rank: xxxxxxxxxxxxxxxxxxxxxxxxxx LastIC: 123d 00:18       
-#  Player: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Last On: 123d 00:35
-#  Contact Info: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    # 12345678901234567890123456789012345678901234567890123456789012345678901234
+    # --< SHORTNAME >-----------------------------------< DEXNO |TYPE||TYPE| >--
+    # Name: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xSBx xSPECIESxxxx
+    # Faction: xxxxxxxxxxxx.............  EVs Eearned: xxx  IC Words:123,456,789
+    # Rank: xxxxxxxxxxxxxxxxxxxxxxxxxxxx  LastIC:1234d 00:18 Last On:1234d 00:35 
+    # Player: xxxxxxxxxxxxxxxxxxxxxxxxxx  Contact: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    # zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+
+    # 12345678901234567890123456789012345678901234567890123456789012345678901234
+    #  Full Name: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IC Words: 12,456,890
+    #  Faction: Unaffiliated Rank: xxxxxxxxxxxxxxxxxxxxxxxxxx LastIC: 123d 00:18       
+    #  Player: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Last On: 123d 00:35
+    #  Contact Info: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
     def reset_ivs(self, caller=None):
 

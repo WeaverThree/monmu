@@ -111,3 +111,7 @@ def is_staff_character(char):
 
 def wrapif(start, middle, end, cond):
     return f"{start if cond else ''}{middle}{end if cond else ''}"
+
+def display_padright(text, width):
+    length = display_len(text)
+    return " " * (width - length) + text

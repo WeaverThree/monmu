@@ -130,6 +130,51 @@ class MonData(Script):
     'speed': 'speed',
     }
 
+    subtype_filter = {
+        "": "", # No subtype is no subtype
+
+        "Alolan": "A.",
+        "Galarian": "G.",
+        "Hisuian": "H.",
+        "Paldea": "P.",
+
+        "Paldean Combat": "P-c.", # Tauros specific
+        "Paldean Blaze": "P-b.",
+        "Paldean Aqua": "P-a.",
+
+        "Plant-Cloak": "(PC)", # Wormadam specific 
+        "Sandy-Cloak": "(SC)",
+        "Trash-Cloak": "(TC)",
+
+        "East Sea": "", # Gastrodon/Shellos - does not affect type 
+        "Wast Sea": "",
+
+        "Red-Striped": "", # Basculin - Might affect evolution
+        "Blue-Striped": "",
+        "White-Striped": "",
+
+        "Male": "", # Meowstic/Indeedee/Basculegion/Oinkologne - does not affect type
+        "Female": "",  
+
+        "Small": "", # Pumpkaboo/Gourgeist - does not affect type
+        "Medium": "",
+        "Large": "",
+        "Jumbo": "",
+
+        "Amped": "", # Toxtricity - does not affect type
+        "Low-Key": "", 
+
+        "Single Strike": "S.S.", # Urshifu - does affect type
+        "Rapid Strike": "R.S.",
+
+        "Bloodmoon": "", # Ursaluna - does not affect type
+
+        "Green Plumage": "", # Squawkabilly - Does not affect type
+        "Blue Plumage": "",
+        "Yellow Plumage": "",
+        "White Plumage": "",
+    }
+
 
     def search_mons(self, namenum, subtype="", form=""):
         candidates = []

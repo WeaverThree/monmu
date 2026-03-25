@@ -83,10 +83,11 @@ def type_vuln_table(type1, type2="", show_header=True, show_nochange=True):
     return '\n'.join(out)
 
 
-def get_display_mon_name(mon):
+def get_display_mon_name(mon, showform=True, showsubtype=True, subfilter=False):
     
     from typeclasses.characters import Character
-    
+    mondata = GLOBAL_SCRIPTS.mondata
+
     # We're distingushing betweend dicts and characters here so can't use is_typeclass
     if not mon:
         name = "????"
@@ -101,8 +102,9 @@ def get_display_mon_name(mon):
         subtype = mon['subtype']
         form = mon['form']
     
-    subtype = f"|Y{subtype}|n " if subtype else ""
-    form = f"|R{form}|n " if form else ""
+    subtype = mondata.subtype_filter[subtype] if subfilter else subtype
+    subtype = f"|Y{subtype}|n " if subtype and showsubtype else ""
+    form = f"|R{form}|n " if form and showform else ""
     return f"{form}{subtype}|w{name}|n"
 
 
