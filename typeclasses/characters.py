@@ -193,7 +193,7 @@ class Character(ObjectParent, DefaultCharacter):
         desc = self.get_display_desc(looker, **kwargs)
 
         if looker == self:
-            if display_len(desc) < self.DESC_LENGTH_REQ:
+            if display_len(desc) < settings.DESIRED_MIN_DESC:
                 anyone_notice(looker, "Your description should be longer.")
 
         return f"{self.get_display_header() + '\n' if show_header else ''}{desc}\n"
@@ -881,8 +881,6 @@ class PlayerCharacter(Character):
     last_ic_talk_time = AttributeProperty(0, category="talkmonitor")
     move_lock_end_time = AttributeProperty(0, category="talkmonitor")
     ic_wordcount = AttributeProperty(0, category="talkmonitor")
-
-    DESC_LENGTH_REQ = settings.DESIRED_MIN_DESC
     
     def logaudit(self, msg):
         self.auditlog.append((time.time(),msg))

@@ -60,8 +60,6 @@ class ObjectParent:
     ic_wordcount_loc = AttributeProperty(0, category="talkmonitor")
     ic_talkers_loc = AttributeProperty({}, category="talkmonitor")
 
-    DESC_LENGTH_REQ = 0
-
     @property
     def ic_idle_time_loc(self):
         return time.time() - self.last_ic_talk_time_loc
@@ -219,11 +217,11 @@ class ObjectParent:
         
         zonedb = evennia.GLOBAL_SCRIPTS.zonedb
 
-        roomname = self.get_display_name(looker, **kwargs),
-        extra_name_info = self.get_extra_display_name_info(looker, **kwargs),
-        desc = self.get_display_desc(looker, **kwargs),
+        roomname = self.get_display_name(looker, **kwargs)
+        extra_name_info = self.get_extra_display_name_info(looker, **kwargs)
+        desc = self.get_display_desc(looker, **kwargs)
         
-        if display_len(desc) < self.DESC_LENGTH_REQ:
+        if display_len(desc) < settings.DESIRED_MIN_DESC:
             builder_notice(looker, "This room should have a longer desc.")
 
         from .rooms import Room
@@ -251,15 +249,14 @@ class ObjectParent:
         # For reasons entirely unclear to me, roomname, extra_name_info, and desc need to be
         # subscripted here...
 
-        header = header_two_slot(_WIDTH, f"|w{roomname[0]}{extra_name_info[0]}|n", f"|w{zname}|n" if zname else None)
+        header = header_two_slot(_WIDTH, f"|w{roomname}{extra_name_info}|n", f"|w{zname}|n" if zname else None)
 
         lasttime = time_format(time.time() - self.last_ic_talk_time_loc, 0) if self.last_ic_talk_time_loc else "Never"
         tmp_last_talk_time = f"(TMP) Last Talk: {lasttime} Wordcount here: {self.ic_wordcount_loc}"
 
-        desc1 = f"{zdesc}\n|R{' -' * 37}|n\n" if zdesc else ''
-        desc2 = desc[0]
+        zdesc = zdesc + '\n\n' if zdesc else ''
 
-        return f"{header}\n{desc1}|x{tmp_last_talk_time}|n\n{desc2}\n\n{looktable}{'\n' if looktable else ''}"
+        return f"{header}\n|x{tmp_last_talk_time}|n\n{zdesc}{desc}\n\n{looktable}{'\n' if looktable else ''}"
 
 
     def get_room_inventory(self, looker, kwargs):

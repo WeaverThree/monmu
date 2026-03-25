@@ -14,7 +14,6 @@ from world.monutils import get_inline_mon_banner, get_display_mon_banner
 _MAX_EQUIPPED_MOVES = settings.MAX_EQUIPPED_MOVES
 _STARTING_MOVES = settings.STARTING_MOVES
 _MIN_DESC = settings.DESIRED_MIN_DESC
-
 _MAX_EV_CHARACTER = settings.MAX_EV_CHARACTER
 _MAX_EV_STAT = settings.MAX_EV_STAT
 

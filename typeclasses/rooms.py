@@ -25,7 +25,6 @@ class Room(ObjectParent, DefaultRoom):
     properties and methods available on all Objects.
     """
 
-    DESC_LENGTH_REQ = settings.DESIRED_MIN_DESC
 
     @property
     def is_ic_room(self):
@@ -150,8 +149,7 @@ class AUPRoomCmdSet(evennia.CmdSet):
 
 class AUPRoom(SuperDarkRoom):
     """A room in which the policy is laid out. Policy not included."""
-    DESC_LENGTH_REQ = 0
-
+    
     def at_object_creation(self):
 
         super().at_object_creation()
