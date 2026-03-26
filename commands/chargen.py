@@ -725,7 +725,8 @@ class CmdChargen(Command):
         )
 
         out.append(_checkboxline(
-            f"|wSpecies:|n {get_display_mon_banner(target) if target.species else 'See |bhelp +setspecies|n'}.",
+            f"|wSpecies:|n "
+            f"{get_inline_mon_banner(target, capstart=True) if target.species else 'See |bhelp +setspecies|n'}.",
             target.species
         ))
 

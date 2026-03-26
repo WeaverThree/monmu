@@ -200,8 +200,6 @@ class JailRoomCmdSet(evennia.CmdSet):
         self.add(userlisting.CmdStaff())
 
 
-
-
 class JailRoom(SuperDarkRoom):
     """A room for holding miscreants."""
     
