@@ -76,12 +76,15 @@ def _statline(statname, char):
 # There's an issue with the math here where being 40 points apart will show as 'stronger' to one side
 # but 'slightly weaker' to the other. Not sure how to fix that.
 
-_comparetable = [
-    (-999, -80, "Incredibly Weaker",      "|g"),
-    ( -80, -60, "Significantly Weaker",   "|g"),
-    ( -60, -40, "Weaker",                 "|G"),
-    ( -40, -20, "Slightly Weaker",        "|G"),
-    ( -20,  20, "Comprable",              "|Y"),
+_comparetable_neg = [
+    (   0,  20, "Comprable",              "|Y"),
+    (  20,  40, "Slightly Weaker",        "|G"),
+    (  40,  60, "Weaker",                 "|G"),
+    (  60,  80, "Significantly Weaker",   "|g"),
+    (  80, 999, "Incredibly Weaker",      "|g"),
+]
+_comparetable_pos = [
+    (   0,  20, "Comprable",              "|Y"),
     (  20,  40, "Slightly Stronger",      "|R"),
     (  40,  60, "Stronger",               "|R"),
     (  60,  80, "Significantly Stronger", "|r"),
@@ -96,7 +99,9 @@ def _comparestatline (statname, us, them):
 
     desc = ""
     color = ""
-    for low, high, d, c in _comparetable:
+    comparetable = _comparetable_neg if diff < 0 else _comparetable_pos
+    diff = abs(diff)
+    for low, high, d, c in comparetable:
         if low <= diff < high:
             desc = d
             color = c
