@@ -50,8 +50,7 @@ class Room(ObjectParent, DefaultRoom):
 
         if moved_obj.is_typeclass(PlayerCharacter):
             if moved_obj.player_mode not in ("DOWN", "JAIL"):
-                zone = self.tags.get(category="Zone", return_list=True)
-                if zone and zone[0] != 'ooc' and not moved_obj.account.permissions.check('Builder'):
+                if self.is_ic_room and not moved_obj.account.permissions.check('Builder'):
                     if moved_obj.player_mode != "IC":
                         moved_obj.msg("|mMoving to IC grid, enetring IC mode.|n")
                         moved_obj.player_mode = "IC"
