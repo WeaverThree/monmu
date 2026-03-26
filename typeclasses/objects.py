@@ -60,6 +60,7 @@ class ObjectParent:
     last_ic_talk_time_loc = AttributeProperty(0, category="talkmonitor")
     ic_wordcount_loc = AttributeProperty(0, category="talkmonitor")
     ic_talkers_loc = AttributeProperty({}, category="talkmonitor")
+    show_zone_desc = AttributeProperty(True)
 
     @property
     def ic_idle_time_loc(self):
@@ -264,7 +265,7 @@ class ObjectParent:
         lasttime = time_format(time.time() - self.last_ic_talk_time_loc, 0) if self.last_ic_talk_time_loc else "Never"
         tmp_last_talk_time = f"(TMP) Last Talk: {lasttime} Wordcount here: {self.ic_wordcount_loc}"
 
-        zdesc = zdesc + '\n\n' if zdesc else ''
+        zdesc = zdesc + '\n\n' if zdesc and self.show_zone_desc else ''
 
         return f"{header}\n|x{tmp_last_talk_time}|n\n{zdesc}{desc}\n\n{looktable}{'\n' if looktable else ''}"
 

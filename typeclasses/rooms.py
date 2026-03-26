@@ -129,21 +129,20 @@ class AUPRoomCmdSet(evennia.CmdSet):
         
         self.add(chargen.CmdAcceptPolicy())
 
-        self.add(building_overrides.CmdDesc())
-        self.add(system_overrides.CmdAbout())
-        self.add(comms_overrides.CmdChannel())
-        self.add(general_overrides.CmdLook())
-        self.add(userlisting.CmdStaff())
         self.add(default_building.CmdTeleport())
         self.add(default_building.CmdSetAttribute())
         self.add(default_building.CmdExamine())
-        self.add(help_overrides.CmdHelp())
         self.add(default_building.CmdTag())
-        self.add(building.CmdZone())
-        self.add(building.CmdSetSpecialRoom())
         self.add(default_account.CmdQuit())
-
-
+        self.add(default_building.CmdSetAttribute())
+        self.add(building_overrides.CmdDesc())
+        self.add(comms_overrides.CmdChannel())
+        self.add(general_overrides.CmdLook())
+        self.add(help_overrides.CmdHelp())
+        self.add(system_overrides.CmdAbout())
+        self.add(building.CmdSetSpecialRoom())
+        self.add(building.CmdZone())
+        self.add(userlisting.CmdStaff())
 
 
 class AUPRoom(SuperDarkRoom):
@@ -154,3 +153,60 @@ class AUPRoom(SuperDarkRoom):
         super().at_object_creation()
 
         self.cmdset.add(AUPRoomCmdSet(), persistent=True)
+
+
+class JailRoomCmdSet(evennia.CmdSet):
+    """
+    Like AUP Room but no channels but page instead. This will let them page non staff for now but
+    that's ok for now.
+    """
+    mergetype = "Replace"
+    priority = 100
+    
+    def at_cmdset_creation(self):
+
+        # Import these here to avoid potential circular imports at the module level that might be
+        # some kind of freaky race condition 
+
+        from commands import (
+            chargen, 
+            admin_overrides, 
+            general, 
+            general_overrides, 
+            comms_overrides, 
+            system_overrides,
+            building_overrides,
+            userlisting,
+            help_overrides,
+            building,
+        )
+
+        from evennia.commands.default import building as default_building
+        from evennia.commands.default import account as default_account
+
+        self.add(default_building.CmdTeleport())
+        self.add(default_building.CmdSetAttribute())
+        self.add(default_building.CmdExamine())
+        self.add(default_building.CmdTag())
+        self.add(default_building.CmdSetAttribute())
+        self.add(default_account.CmdQuit())
+        self.add(building_overrides.CmdDesc())
+        self.add(comms_overrides.CmdPage())
+        self.add(general_overrides.CmdLook())
+        self.add(help_overrides.CmdHelp())
+        self.add(system_overrides.CmdAbout())
+        self.add(building.CmdSetSpecialRoom())
+        self.add(building.CmdZone())
+        self.add(userlisting.CmdStaff())
+
+
+
+
+class JailRoom(SuperDarkRoom):
+    """A room for holding miscreants."""
+    
+    def at_object_creation(self):
+
+        super().at_object_creation()
+
+        self.cmdset.add(JailRoomCmdSet(), persistent=True)
