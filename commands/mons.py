@@ -11,10 +11,12 @@ from evennia.utils import evtable, string_suggestions
 from .command import MuxCommand, Command
 from typeclasses.characters import Character, PlayerCharacter
 from typeclasses.rooms import Room
+from world.utils import header_two_slot
 from world.monutils import type_vuln_table, get_display_mon_banner, moves_table, single_move, color_uses_text
 
 _ROOM_TAG_TELTARGET = settings.ROOM_TAG_TELTARGET
 _ROOM_TAG_NOTEL = settings.ROOM_TAG_NOTEL
+_WIDTH = settings.OUR_WIDTH
 
 class CmdMonTypes(Command):
     """
@@ -62,14 +64,14 @@ class CmdMonTypes(Command):
             self.caller.msg("Double of same type not allowed, sorry.")
             return
 
-        self.caller.msg(type_vuln_table(type1, type2))
+        self.caller.msg(f"{type_vuln_table(type1, type2)}\n")
 
 
     def print_table(self):
         mondata = GLOBAL_SCRIPTS.mondata
         types = mondata.types
 
-        out = []
+        out = [header_two_slot(_WIDTH, "|wLeft: Attacker, Top: Defender|n", headercolor="|W")]
 
         line = ["      "]
         for type0 in mondata.typenames:
@@ -94,12 +96,8 @@ class CmdMonTypes(Command):
 
             out.append("".join(line))
         
-        title = " Left: Attacker, Top: Defender "
-        fill = ((6 + len(types) * 4) - len(title)) / 2.0
-        leftfill = "-" * math.floor(fill)
-        rightfill = "-" * math.ceil(fill)
-
-        self.caller.msg(f"|x{leftfill}|w{title}|x{rightfill}|n")
+        out.append('')
+        
         self.caller.msg("\n".join(out))
     
 

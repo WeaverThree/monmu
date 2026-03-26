@@ -73,8 +73,6 @@ def _statline(statname, char):
         sep = '-'
     return f"|#{_statcolor[statname]}{_display_statname[statname]:>7}{sep}|w{stat:3d}|x[{iv:2d}||{ev:3d}]|n"
 
-# There's an issue with the math here where being 40 points apart will show as 'stronger' to one side
-# but 'slightly weaker' to the other. Not sure how to fix that.
 
 _comparetable_neg = [
     (   0,  20, "Comprable",              "|Y"),

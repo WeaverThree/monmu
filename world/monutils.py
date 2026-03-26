@@ -64,7 +64,7 @@ def type_vuln_table(type1, type2="", show_header=True, show_nochange=True):
         typetoken = types[type1]['doubletoken']
         
     if show_header:
-        out.append(f"\n|wVulnerabilities for >|n{typetoken}|w<|n")
+        out.append(f"|wVulnerabilities for >|n{typetoken}|w<|n")
     if one and show_nochange: 
         out.append(f"NO CHANGE:{''.join(one)}")
     if invuln:
