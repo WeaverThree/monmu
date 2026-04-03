@@ -68,6 +68,11 @@ urlpatterns = [
         name="character-detail",
     ),
     path(
+        "characters/detail/<str:slug>/<int:pk>/",
+        characters.CharacterDetailView.as_view(),
+        name="player-character-detail",
+    ),
+    path(
         "characters/puppet/<str:slug>/<int:pk>/",
         errors.to_be_implemented,
         name="character-puppet",
