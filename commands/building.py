@@ -158,7 +158,7 @@ class CmdZoneInfo(MuxCommand):
         
         # Single zone report:
 
-        if not rhs:
+        if '=' not in self.args:
             if action:
                 self.msg(self._usage)
                 return
@@ -173,17 +173,18 @@ class CmdZoneInfo(MuxCommand):
                 f"{desc}\n"
             )
             return
-        
-        if rhs:
-            if action == 'name':
-                zonedb.zones[targetzone]['name'] = rhs
-                self.msg(f"Zone {targetzone} name updated.")
-            elif action == 'desc':
-                zonedb.zones[targetzone]['desc'] = rhs
-                self.msg(f"Zone {targetzone} desc updated.")
-            else:
-                self.msg(self._usage)
-                return
+    
+        # If we get here they're are least setting something equal to nothing
+
+        if action == 'name':
+            zonedb.zones[targetzone]['name'] = rhs
+            self.msg(f"Zone {targetzone} name updated.")
+        elif action == 'desc':
+            zonedb.zones[targetzone]['desc'] = rhs
+            self.msg(f"Zone {targetzone} desc updated.")
+        else:
+            self.msg(self._usage)
+            return
 
 
 class CmdSetSpecialRoom(Command):
