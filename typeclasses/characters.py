@@ -107,25 +107,25 @@ def _comparestatline (statname, us, them):
 
     return f"|#{_statcolor[statname]}{_display_statname[statname]:>7}:{color}{desc:>23}|n"
 
-def _comparecrossstats (stat1, stat2, us, them):
-    # We're going to assume that both sides have stats here
-    ourstat = us.stats[stat1]
-    theirstat = them.stats[stat2]
-    diff = theirstat - ourstat # this + us = them
+# def _comparecrossstats (stat1, stat2, us, them):
+#     # We're going to assume that both sides have stats here
+#     ourstat = us.stats[stat1]
+#     theirstat = them.stats[stat2]
+#     diff = theirstat - ourstat # this + us = them
 
-    desc = ""
-    color = ""
-    for low, high, d, c in _comparetable:
-        if low <= diff < high:
-            desc = d
-            color = c
-            break
+#     desc = ""
+#     color = ""
+#     for low, high, d, c in _comparetable:
+#         if low <= diff < high:
+#             desc = d
+#             color = c
+#             break
 
-    return (
-        f"|#{_statcolor[stat1]}{_display_statname[stat1]}"
-        f"|w vs |#{_statcolor[stat2]}{_display_statname[stat2]}"
-        f": {color}{desc}|n"
-    )
+#     return (
+#         f"|#{_statcolor[stat1]}{_display_statname[stat1]}"
+#         f"|w vs |#{_statcolor[stat2]}{_display_statname[stat2]}"
+#         f": {color}{desc}|n"
+#     )
 
 
 class Character(ObjectParent, DefaultCharacter):

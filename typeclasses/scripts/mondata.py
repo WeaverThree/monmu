@@ -414,8 +414,8 @@ class MonData(Script):
                 raise ValueError(f"Bad nature data on row {row}")
             
             self.natures[name] = {
-                'name':name, 'favored_stat':favored_stat, 'neglected_stat':neglected_stat,
-                'favored_flavor':favored_flavor, 'disliked_flavor': disliked_flavor,
+                'name':name, 'favored_stat':favored_stat.lower(), 'neglected_stat':neglected_stat.lower(),
+                'favored_flavor':favored_flavor.lower(), 'disliked_flavor': disliked_flavor.lower(),
             }
                     
 

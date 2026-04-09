@@ -8,6 +8,12 @@ I'm just making this public to make things easier.
 
 # Todo list! - MVP
 
+- FIX TARGETING ON PAGEs
+
+- Clear line after look at feature output
+
+- Fix coloring in feature list header, possibly check header function
+
 - Way to set faction/rank
 
 - skill swapper object
