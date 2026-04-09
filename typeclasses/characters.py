@@ -401,9 +401,9 @@ class Character(ObjectParent, DefaultCharacter):
                 value = math.floor(topline / 100) + 5
 
             if stat == self.favored_stat:
-                value = math.floor(stat * 1.10)
+                value = math.floor(value * 1.10)
             elif stat == self.neglected_stat:
-                value = math.floor(stat * 0.90)
+                value = math.floor(value * 0.90)
             
             stats[stat] = value
         self.stats = stats
