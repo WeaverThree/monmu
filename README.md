@@ -10,6 +10,8 @@ I'm just making this public to make things easier.
 
 - FIX TARGETING ON PAGEs
 
+- Name color in look me
+
 - Clear line after look at feature output
 
 - Fix coloring in feature list header, possibly check header function
