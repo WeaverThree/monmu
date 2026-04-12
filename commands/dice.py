@@ -13,16 +13,16 @@ class CmdDice(MuxCommand):
     perser's syntax, please see https://d20.readthedocs.io/en/latest/start.html#dice-syntax
     
     Usage:
-        +dice <dice expression>
-        +dice/private <dice expression>
-        +dice/priv <dice expression>
+        dice <dice expression>
+        dice/private <dice expression>
+        dice/priv <dice expression>
     
     Examples:
-        +dice 3d6+1
-        +dice/priv 6d3+5
+        dice 3d6+1
+        dice/priv 6d3+5
     """
-    key = "+dice"
-    aliases = ['+roll']
+    key = "dice"
+    aliases = ['roll']
     locks = "cmd:all()"
     help_category = "General"
 
@@ -32,6 +32,7 @@ class CmdDice(MuxCommand):
             import d20
         except ImportError:
             self.msg("|mFunctionality not available. Needs python package 'd20'")
+            return
 
         args = self.args.strip()
         

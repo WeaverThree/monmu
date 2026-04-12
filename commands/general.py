@@ -142,15 +142,15 @@ class CmdStats(Command):
     (Or see the stats of another, if you're ADMIN+. Compare will always compare.)
 
     Usage:
-      +stats
-      +stats <creature>
-      +compare <creature>
+        stats
+        stats <creature>
+        compare <creature>
     """
 
-    key = "+stats"
-    aliases = ["+stat", "+sheet", "+compare"]
+    key = "stats"
+    aliases = ["stat", "sheet", "compare"]
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
 
     def func(self):
 
@@ -184,11 +184,10 @@ class CmdFinger(Command):
     can target anyone anywhere.
 
     Usage:
-      info <player creature>
+        info <player creature>
     """
 
     key = "info"
-    aliases = "finger"
     locks = "cmd:all()"
 
     def func(self):
@@ -198,7 +197,7 @@ class CmdFinger(Command):
         args = self.args.strip()
 
         if not args:
-            self.msg("Usage: +finger <player creature>")
+            self.msg("Usage: info <player creature>")
             return
         
         if args in ('self', 'me'):
@@ -227,13 +226,13 @@ class CmdFullLook(Command):
     Get all details about a creature in one go. 
 
     Usage:
-      +fulllook [creature]
+      fulllook [creature]
     """
 
-    key = "+fulllook"
-    aliases = "+flook"
+    key = "fulllook"
+    aliases = "flook"
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
 
     def func(self):
 
@@ -275,7 +274,6 @@ class CmdTeleportOOC(Command):
 
     key = "+ooc"
     locks = "cmd:all()"
-    # help_category = "People"
 
     def func(self):
 
@@ -306,7 +304,6 @@ class CmdTeleportIC(Command):
 
     key = "+ic"
     locks = "cmd:all()"
-    # help_category = "People"
 
     def func(self):
 

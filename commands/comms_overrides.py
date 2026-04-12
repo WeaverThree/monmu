@@ -197,7 +197,7 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
 
     key = "channel"
     aliases = ["chan", "channels"]
-    help_category = "Comms"
+    help_category = "General"
     # these cmd: lock controls access to the channel command itself
     # the admin: lock controls access to /boot/ban/unban switches
     # the manage: lock  controls access to /create/destroy/desc/lock/unlock switches
@@ -1309,7 +1309,7 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
     aliases = ["tell"]
     switch_options = ("last", "list")
     locks = "cmd:not pperm(page_banned)"
-    help_category = "Comms"
+    help_category = "General"
 
     # this is used by the COMMAND_DEFAULT_CLASS parent
     account_caller = False

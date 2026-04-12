@@ -529,13 +529,14 @@ class CmdSetDesc(MuxCommand):
     key = "setdesc"
     locks = "cmd:all()"
     arg_regex = r"\s|$"
+    help_category = "Character Generation"
 
     def func(self):
         """add the description"""
 
         if not self.args:
-            self.msg("You must add a description.")
+            self.msg("Description is mandatory~")
             return
 
         self.caller.db.desc = self.args.strip()
-        self.msg("You set your description.")
+        self.msg(f"{self.caller.get_display_name(self.caller)} updated.")

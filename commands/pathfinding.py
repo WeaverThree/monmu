@@ -27,8 +27,8 @@ class CmdPathfind(Command):
     Usage:
       find <player character>
     """
-    aliases = "path"
     key = "find"
+    aliases = "path"
     locks = "cmd:all()"
 
     def func(self):

@@ -22,22 +22,22 @@ class CmdMonTypes(Command):
     """
     Without arguments, prints the full type effectiveness table.
     Otherwise:
-        +montypes type1[/type2] -> analyze type (combination) vulnerabilities
+        montypes type1[/type2] -> analyze type (combination) vulnerabilities
     """
 
-    key = "+montypes"
+    key = "montypes"
     aliases = "Vulns"
     locks = "cmd:all()"
-    help_category = "Mons"
+    help_category = "Information"
 
-    _usage = "Usage: +montypes type1[/type2] - analyze pokemon type (combo)"
+    _usage = "Usage: montypes type1[/type2] - analyze pokemon type (combo)"
 
     def func(self):
         self.args = self.args.strip()
         if not self.args:
             self.print_table()
         else:
-            self.args = self.args.replace('/',',')
+            self.args = self.args.rep    # help_category = "People"lace('/',',')
             types = self.args.split(',')
             if 1 <= len(types) <= 2:
                 self.type_analysis(*types)
@@ -106,13 +106,13 @@ class CmdRandMons(Command):
     For inspiration.
 
     Usage:
-        +randmons [count]
+        randmons [count]
     """
-    key = '+randmons'
+    key = 'randmons'
     locks = "cmd:all()"
-    help_category = "Mons"
+    help_category = "Information"
     
-    _usage = "Usage: +randmons [count]"
+    _usage = "Usage: randmons [count]"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -148,13 +148,13 @@ class CmdMoveLookup(Command):
     For checking the data available.
 
     Usage:
-        +movelookup <name>
+        movelookup <name>
     """
-    key = '+movelookup'
+    key = 'movelookup'
     locks = "cmd:all()"
-    help_category = "Mons"
+    help_category = "Information"
     
-    _usage = "Usage: +movelookup <name>"
+    _usage = "Usage: movelookup <name>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -183,13 +183,13 @@ class CmdRandMoves(Command):
     For inspiration.
 
     Usage:
-        +randmoves [count]
+        randmoves [count]
     """
-    key = '+randmoves'
+    key = 'randmoves'
     locks = "cmd:all()"
-    help_category = "Mons"
+    help_category = "Information"
     
-    _usage = "Usage: +randmoves [count]"
+    _usage = "Usage: randmoves [count]"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -223,13 +223,14 @@ class CmdUseMove(Command):
     Use a move, reducing it's PP until the next refresh.
 
     Usage:
-        +use <move>
+        attack <move>
     """
-    key = '+use'
+    key = 'attack'
+    aliases = "usemove"
     locks = "cmd:all()"
-    help_category = "Mons"
+    help_category = ""
     
-    _usage = "Usage: +use <move>"
+    _usage = "Usage: attack <move>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -287,14 +288,12 @@ class CmdMoveTeleport(MuxCommand):
     for destination list.
 
     Usage:
-        +teleport -> show known teleport destinations
-        +teleport <destination> -> teleport to destination
-        +teleport <creature> -> teleport to creature if they allow it
+        teleport -> show known teleport destinations
+        teleport <destination> -> teleport to destination
+        teleport <creature> -> teleport to creature if they allow it
     """
-    key = '+teleport'
-    aliases = '+tel'
+    key = 'teleport'
     locks = "cmd:all()"
-    help_category = "Mons"
     
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata

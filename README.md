@@ -17,16 +17,13 @@ color -> system
 information category
 pure info plus look, finger, etc
 
-setdesc remove
+
 
 
 lookat [atalanta]=[bulge]
 lookat sign
 lookat here=sign
 
-Character Generation:
- 
-+buyevs, +buyivs, +chargen, +equimove, +forgetmove, +learnmove, +resetivs, +setinfo, +setnature, +setspecies, +unquipment, setdesc
 
 Information:
  
@@ -34,7 +31,7 @@ roster, stats, talkers, glance, staff, , who, fulllook, info,
 
 General:
  
-dice, ic, ooc, vote, drop, find, follow, get, give, help, inventory, look, lookat, ooc, pose, say, quit, spoof, channel, page, find
+, +vote,  ,, lookat, ,  find
 
 System:
  
