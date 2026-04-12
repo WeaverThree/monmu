@@ -92,15 +92,26 @@ class CmdAcceptPolicy(Command):
 
 class CmdChargenSetSpecies(Command):
     """
+    Set your character's mon species as well as their ability (which is based on species). If there
+    is more than one form or subtype of the mon available, you will be presented wtih a menus if you
+    did not specify. The system currently does not understand forms, so pease pick one that could
+    be considered a base or standard form. You will also be given a menu to select the ability if
+    there is more than one choice. 
+
+    This command only works when your character is not yet approved.
+
+    Example:
+        setspecies braixen
+        setspecies 55
     Usage:
-        +setspecies (subtype,||subtype,form,)<species name or dex number>
+        setspecies (subtype,||subtype,form,)<species name or dex number>
     """
-    key = '+setspecies'
-    aliases = ['+setmon']
+    key = 'setspecies'
+    aliases = ['setmon']
     locks = "cmd:all()"
-    help_category = "Chargen"
+    help_category = "Character Generation"
     
-    _usage = "Usage: +setspecies (subtype,||subtype,form,)<species name or dex number>"
+    _usage = "Usage: setspecies (subtype,||subtype,form,)<species name or dex number>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -227,14 +238,23 @@ class CmdChargenSetSpecies(Command):
 
 class CmdChargenSetNature(Command):
     """
-    Usage: 
-        +setnature [nature]
-    """
-    key = '+setnature'
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    Sets your character's nature. Most natures have a upside and a downside. All of this is listed
+    with a menu when the command is called without a paramater. 
 
-    _usage = "Usage: +setnature [nature]"
+    This command only works when your character is not yet approved.
+
+    Examples:
+        setnature Bold
+        setnature
+    
+    Usage: 
+        setnature [nature]
+    """
+    key = 'setnature'
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: setnature [nature]"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -293,20 +313,31 @@ class CmdChargenSetNature(Command):
 
         self.msg(f"{target.get_display_name(looker=self.caller)} updated.")
 
+
 def _sif(count, s='s'):
     return s if count != 1 else ''
 
+
 class CmdChargenBuyIVs(MuxCommand):
     """
-    Usage:
-        +buyivs <stat> = <tokens to spend>
-    """
-    key = '+buyivs'
-    aliases = ['+spendivs']
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    Spend your character's IV tokens to buy IVs at a rate of 3 per token. See |bstats|n for your
+    current IV configuration.
 
-    _usage = "Usage: +buyivs <stat> = <tokens to spend>"
+    This command only works when your character is not yet approved.
+    
+    Examples:
+        buyivs physatk=10
+        buyivs speed=5
+
+    Usage:
+        buyivs <stat> = <tokens to spend>
+    """
+    key = 'buyivs'
+    aliases = ['spendivs']
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: buyivs <stat> = <tokens to spend>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -334,7 +365,7 @@ class CmdChargenBuyIVs(MuxCommand):
             self.msg(self._usage)
             self.msg(
                 f"{target.get_display_name(self.caller)} has |r{remaining}|n IV token{_sif(remaining)} left to spend. "
-                f"Use |b+stats|n to see how they're currently allocated, or |b+resetivs|n to start over."
+                f"Use |bstats|n to see how they're currently allocated, or |bresetivs|n to start over."
             )
             return
 
@@ -381,12 +412,16 @@ class CmdChargenBuyIVs(MuxCommand):
 
 class CmdChargenResetIVs(MuxCommand):
     """
+    Resets your IV purchases so you can start over with them.
+    
+    This command only works when your character is not yet approved.
+
     Usage:
-        +resetivs
+        resetivs
     """
-    key = '+resetivs'
+    key = 'resetivs'
     locks = "cmd:all()"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     def func(self):
 
@@ -407,14 +442,23 @@ class CmdChargenResetIVs(MuxCommand):
 
 class CmdChargenEquipMove(MuxCommand):
     """
-    Usage:
-        +equipmove <move name>
-    """
-    key = '+equipmove'
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    Equip a known move. 
+    See |bstats|n for a list of known and equipped moves.
+    
+    This command only works when your character is not yet approved, or is at a device that allows
+    move management |M(latter not yet implemented)|n.
 
-    _usage = "Usage: +equipmove <move name>"
+    Examples
+        equipmove fire spin
+
+    Usage:
+        equipmove <move name>
+    """
+    key = 'equipmove'
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: equipmove <move name>"
 
     def func(self):
 
@@ -463,16 +507,23 @@ class CmdChargenEquipMove(MuxCommand):
 
 class CmdChargenUnequipMove(MuxCommand):
     """
-    Unequip move or show equipped moves if move name not given.
+    Unequip an equipped move, making it merely known. 
+    See |bstats|n for a list of known and equipped moves.
+    
+    This command only works when your character is not yet approved, or is at a device that allows
+    move management |M(latter not yet implemented)|n.
+
+    Examples
+        unequipmove light screen
 
     Usage:
-        +unequipmove [move name]
+        unequipmove <move name>
     """
-    key = '+unequipmove'
+    key = 'unequipmove'
     locks = "cmd:all()"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
-    _usage = "Usage: +unequipmove [move name]"
+    _usage = "Usage: unequipmove <move name>"
 
     def func(self):
 
@@ -526,14 +577,25 @@ class CmdChargenUnequipMove(MuxCommand):
 
 class CmdChargenLearnMove(MuxCommand):
     """
-    Usage:
-        +learnmove <move name>
-    """
-    key = '+learnmove'
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    Learn a move your character does not yet know.
+    See |bstats|n for a list of known and equipped moves.
+    
+    The system does not know which moves are valid for your species, so please check a website like
+    bulbapedia if you're not sure. You're on your honor.
 
-    _usage = "Usage: +learnmove <move name>"
+    This command only works when your character is not yet approved.
+
+    Examples
+        learnmove acid armor
+
+    Usage:
+        learnmove <move name>
+    """
+    key = 'learnmove'
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: learnmove <move name>"
 
     def func(self):
         
@@ -571,15 +633,22 @@ class CmdChargenLearnMove(MuxCommand):
 
 class CmdChargenForgetMove(MuxCommand):
     """
-    Forget move or show known moves if move name not given.
-    Usage:
-        +forgetmove [move name]
-    """
-    key = '+forgetmove'
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    Forget a move your character knows, unequipping it if necessary.
+    See |bstats|n for a list of known and equipped moves.
+    
+    This command only works when your character is not yet approved.
 
-    _usage = "Usage: +forgetmove [move name]"
+    Examples
+        forgetmove aurora beam
+
+    Usage:
+        forgetmove <move name>
+    """
+    key = 'forgetmove'
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: forgetmove <move name>"
 
     def func(self):
 
@@ -638,14 +707,17 @@ class CmdChargenSetInfo(MuxCommand):
 
     For valid fields and current settings run with no parameters.
 
-    Usage:
-        +setinfo [field = text]
-    """
-    key = '+setinfo'
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    Example:
+        setinfo sdesc=A very squishy vap.
 
-    _usage = "Usage: +setinfo [field = text]"
+    Usage:
+        setinfo [field = text]
+    """
+    key = 'setinfo'
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: setinfo [field = text]"
 
     def func(self):
         
@@ -697,13 +769,11 @@ class CmdChargen(Command):
     Show where you are on the checklist of character creation.
 
     Usage:
-        +chargen
+        chargen
     """
-    key = '+chargen'
+    key = 'chargen'
     locks = "cmd:all()"
-    help_category = "Chargen"
-
-    _usage = "Usage: +chargen"
+    help_category = "Character Generation"
 
     def func(self):
         
@@ -726,18 +796,18 @@ class CmdChargen(Command):
 
         out.append(_checkboxline(
             f"|wSpecies:|n "
-            f"{get_inline_mon_banner(target, capstart=True) if target.species else 'See |bhelp +setspecies|n'}.",
+            f"{get_inline_mon_banner(target, capstart=True) if target.species else 'See |bhelp setspecies|n'}.",
             target.species
         ))
 
         out.append(_checkboxline(
-            f"|wNature:|n {target.nature if target.nature else 'See |bhelp +setnature|n'}.",
+            f"|wNature:|n {target.nature if target.nature else 'See |bhelp setnature|n'}.",
             target.nature
         ))
 
         iv_tokens_remain = target.ivtokens - target.ivtokens_spent
         if target.species:
-            iv_tokens_string = f"|r{iv_tokens_remain}|n IV tokens remaining. See |bhelp +buyivs|n."
+            iv_tokens_string = f"|r{iv_tokens_remain}|n IV tokens remaining. See |bhelp buyivs|n."
         else:
             iv_tokens_string = f"Set your species first."
 
@@ -750,7 +820,7 @@ class CmdChargen(Command):
         known_color = "|g" if is_correct_known else "|r"
         known_moves_line = f"{known_color}{len(target.moves_known)}|n/{_STARTING_MOVES} moves known."
 
-        known_help = " See |bhelp +learnmove|n and |bhelp +forgetmove|n." if not is_correct_known else ""
+        known_help = " See |bhelp learnmove|n and |bhelp forgetmove|n." if not is_correct_known else ""
 
         out.append(_checkboxline(
             f"|wMoves:|n {known_moves_line}{known_help}",
@@ -773,7 +843,7 @@ class CmdChargen(Command):
         
         sdesc_len = display_len(target.short_desc)
         if not sdesc_len:
-            sdesc_line = "See |bhelp +setinfo|n (|b+setinfo sdesc=...|n)"
+            sdesc_line = "See |bhelp setinfo|n (|bsetinfo sdesc=...|n)"
         else:
             sdesc_line = f"|b{sdesc_len}|n character short description."
             if sdesc_len > 120:
@@ -786,7 +856,7 @@ class CmdChargen(Command):
 
         out.append(_checkboxline(
             f"|wFull Name:|n "
-            f"{target.full_name if target.full_name else 'See |bhelp +setinfo|n (|b+setinfo fname=...|n)'}.",
+            f"{target.full_name if target.full_name else 'See |bhelp setinfo|n (|bsetinfo fname=...|n)'}.",
             target.full_name
         ))
 
@@ -794,7 +864,7 @@ class CmdChargen(Command):
 
         out.append(_checkboxline(
             f"|wPlayer Name:|n "
-            f"{pnm if pnm else 'See |bhelp +setinfo|n (|b+setinfo pname=...|n) (Optional)'}. ",
+            f"{pnm if pnm else 'See |bhelp setinfo|n (|bsetinfo pname=...|n) (Optional)'}. ",
             pnm
         ))
 
@@ -802,7 +872,7 @@ class CmdChargen(Command):
 
         out.append(_checkboxline(
             f"|wPlayer Contact:|n "
-            f"{pct if pct else 'See |bhelp +setinfo|n (|b+setinfo pname=...|n) (Required. Only visible to Admin+)'}.",
+            f"{pct if pct else 'See |bhelp setinfo|n (|bsetinfo pname=...|n) (Required. Only visible to Admin+)'}.",
             pct
         ))
 
@@ -819,15 +889,23 @@ class CmdChargen(Command):
         
 class CmdChargenBuyEVs(MuxCommand):
     """
-    Usage:
-        +buyevs <stat> = <tokens to spend>
-    """
-    key = '+buyevs'
-    aliases = ['+spendevs']
-    locks = "cmd:all()"
-    help_category = "Chargen"
+    When people appreciate your roleplaying, they can vote that you get experience that day. When
+    you get enough experience, you get an EV token. Each EV token is worth 4 EVs. This command is
+    how you spend them.
 
-    _usage = "Usage: +buyevs <stat> = <tokens to spend>"
+    Examples:
+        buyevs speed=5
+        buyevs health=1
+
+    Usage:
+        buyevs <stat> = <tokens to spend>
+    """
+    key = 'buyevs'
+    aliases = ['spendevs']
+    locks = "cmd:all()"
+    help_category = "Character Generation"
+
+    _usage = "Usage: buyevs <stat> = <tokens to spend>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -851,7 +929,7 @@ class CmdChargenBuyEVs(MuxCommand):
             self.msg(self._usage)
             self.msg(
                 f"{target.get_display_name(self.caller)} has |r{remaining}|n EV token{_sif(remaining)} left to spend. "
-                f"Use |b+stats|n to see what's up."
+                f"Use |bstats|n to see what's up."
             )
             return
 

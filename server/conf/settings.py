@@ -38,7 +38,7 @@ MAX_EQUIPPED_MOVES = 6
 MAX_EV_CHARACTER = 508
 MAX_EV_STAT = 252
 
-VOTES_PER_DAY = 2 # How many characters can a person vote for
+VOTES_PER_DAY = 20 # How many characters can a person vote for
 
 VOTE_XP = [125, 150] # Final repeats. Increase fixed at 1000xp
 

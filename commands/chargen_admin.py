@@ -24,13 +24,25 @@ _ADD_ON_APPROVE_CHANNELS = settings.ADD_ON_APPROVE_CHANNELS
 
 class CmdAdminSetSpecies(MuxCommand):
     """
+    Set the target character's mon species as well as their ability (which is based on species). If
+    there is more than one form or subtype of the mon available, you will be presented wtih a menus
+    if you did not specify. The system currently does not understand forms, so pease pick one that
+    could be considered a base or standard form. You will also be given a menu to select the ability
+    if there is more than one choice. 
+
+    Note that using this command on a character that already has a species set will override it and
+    reset their IVs, you may need to |b@unapprove|n them or set their IVs manually yourself.
+
+    Example:
+        @setspecies hina = braixen
+        @setspecies weaver = 55
     Usage:
         @setspecies <target> = (subtype,||subtype,form,)<species name or dex number>
     """
     key = '@setspecies'
     aliases = ['@setmon']
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
     
     _usage = "Usage: @setspecies <target> = (subtype,||subtype,form,)<species name or dex number>"
 
@@ -169,12 +181,19 @@ class CmdAdminSetSpecies(MuxCommand):
 
 class CmdAdminSetNature(MuxCommand):
     """
+    Sets your targets's nature. Most natures have a upside and a downside. All of this is listed
+    with a menu when the command is called without a paramater. 
+    
+    Example:
+        @setnature hina = Bold
+        @setnature haru
+
     Usage: 
         @setnature <target> [= nature]
     """
     key = '@setnature'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @setnature <target> [= nature]"
 
@@ -240,12 +259,19 @@ class CmdAdminSetNature(MuxCommand):
 
 class CmdAdminBuyIVs(MuxCommand):
     """
+    Spend your target's IV tokens to buy IVs at a rate of 3 per token. See |bstats <target>|n for
+    your target's current IV configuration.
+    
+    Examples:
+        @buyivs marr/physatk=10
+        @buyivs hina/speed=5
+
     Usage:
         @buyivs <target>/<stat> = <tokens to spend>
     """
     key = '@buyivs'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @buyivs <target>/<stat> = <tokens to spend>"
 
@@ -316,6 +342,9 @@ class CmdAdminBuyIVs(MuxCommand):
 
 class CmdAuditLog(MuxCommand):
     """
+    Display the audit log on the character. Note that audit information is also recorded to the
+    server logs folder.
+
     Usage:
         auditlog <target> [= maxmessages]
         auditlog/full target
@@ -324,7 +353,7 @@ class CmdAuditLog(MuxCommand):
 
     key = '@auditlog'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
     
     def func(self):
 
@@ -365,12 +394,15 @@ class CmdAuditLog(MuxCommand):
 
 class CmdAdminResetIVs(MuxCommand):
     """
+    Reset the target character's IVs. If that character has been approved, you will also need to
+    |b@unapprove|n them to allow them to rebuy IVs naturally, or do it yourself with |b@buyivs|n
+
     Usage:
         @resetivs <target>
     """
     key = '@resetivs'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @resetivs <target>"
 
@@ -396,12 +428,18 @@ class CmdAdminResetIVs(MuxCommand):
 
 class CmdAdminEquipMove(MuxCommand):
     """
+    Equip a known move on your target. 
+    See |bstats <target>|n for a list of known and equipped moves on them.
+
+    Example:
+        @equipmove hina = fire spint
+
     Usage:
         @equipmove <target> = <move name>
     """
     key = '@equipmove'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @equipmove <target> = <move name>"
 
@@ -454,16 +492,20 @@ class CmdAdminEquipMove(MuxCommand):
 
 class CmdAdminUnequipMove(MuxCommand):
     """
-    Unequips move or shows equipped moves if called without move name.
+    Unequips a move on your target, making it merely known.
+    See |bstats <target>|n for a list of known and equipped moves on them.
+
+    Examples:
+        @unequipmove hina = light screen
 
     Usage:
-        @unequipmove <target> [= move name]
+        @unequipmove <target> = <move name>
     """
     key = '@unequipmove'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
-    _usage = "Usage: @unequipmove <target> [= move name]"
+    _usage = "Usage: @unequipmove <target> = <move name>"
 
     def func(self):
 
@@ -520,12 +562,18 @@ class CmdAdminUnequipMove(MuxCommand):
 
 class CmdAdminLearnMove(MuxCommand):
     """
+    Causes the target to learn the given move.
+    See |bstats <target>|n for a list of known and equipped moves on them.
+
+    Examples:
+        @learnmove haru = acid armor
+
     Usage:
         @learnmove <target> = <move name>
     """
     key = '@learnmove'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @learnmove <target> = <move name>"
 
@@ -567,16 +615,20 @@ class CmdAdminLearnMove(MuxCommand):
 
 class CmdAdminForgetMove(MuxCommand):
     """
-    Forget move or show known moves if called without move name.
+    Causes the target to forget the given move, unequipping it if nessecary.
+    See |bstats <target>|n for a list of known and equipped moves on them.
+
+    Examples:
+        @forgetmove haru = aurora beam
     
     Usage:
-        @forgetmove <target> [= move name]
+        @forgetmove <target> = <move name>
     """
     key = '@forgetmove'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
-    _usage = "Usage: @forgetmove <target> [= move name]"
+    _usage = "Usage: @forgetmove <target> = <move name>"
 
     def func(self):
 
@@ -636,13 +688,16 @@ class CmdChargenAdminSetInfo(MuxCommand):
 
     For valid fields and current settings run with just a target.
 
+    Example
+        @setinfo haru/sdesc=A very squishy vap.
+
     Usage:
         @setinfo <target>
         @setinfo <target>/<field> = <value>
     """
     key = '@setinfo'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @setinfo <target>[/field = value]"
 
@@ -705,7 +760,7 @@ class CmdAdminApproveCharacter(MuxCommand):
     """
     key = '@approve'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @approve <target>"
     
@@ -813,7 +868,7 @@ class CmdAdminUnapproveCharacter(MuxCommand):
     """
     key = '@unapprove'
     locks = "cmd:perm(Admin)"
-    help_category = "Chargen"
+    help_category = "Character Generation"
 
     _usage = "Usage: @unapprove <target>"
     
