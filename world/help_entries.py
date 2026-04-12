@@ -25,39 +25,39 @@ Each dict is on the form
 """
 
 HELP_ENTRY_DICTS = [
-    {
-         "key": "welcome",
-         "category": "world",
-         "text": """
-         This is an example help entry that we can put on the website maybe, let's see if it works?
-         """,
-    },
-        {
-         "key": "pkmn-below",
-         "category": "world",
-         "text": """
-         This is an example help entry that we can put on the website maybe, let's see if it works?
-         """,
-    },
-        {
-         "key": "species",
-         "category": "world",
-         "text": """
-         This is an example help entry that we can put on the website maybe, let's see if it works?
-         """,
-    },
-        {
-         "key": "morphs",
-         "category": "world",
-         "text": """
-         This is an example help entry that we can put on the website maybe, let's see if it works?
-         """,
-    },
-        {
-         "key": "idk",
-         "category": "world",
-         "text": """
-         This is an example help entry that we can put on the website maybe, let's see if it works?
-         """,
-    },
+    # {
+    #      "key": "welcome",
+    #      "category": "world",
+    #      "text": """
+    #      This is an example help entry that we can put on the website maybe, let's see if it works?
+    #      """,
+    # },
+    #     {
+    #      "key": "pkmn-below",
+    #      "category": "world",
+    #      "text": """
+    #      This is an example help entry that we can put on the website maybe, let's see if it works?
+    #      """,
+    # },
+    #     {
+    #      "key": "species",
+    #      "category": "world",
+    #      "text": """
+    #      This is an example help entry that we can put on the website maybe, let's see if it works?
+    #      """,
+    # },
+    #     {
+    #      "key": "morphs",
+    #      "category": "world",
+    #      "text": """
+    #      This is an example help entry that we can put on the website maybe, let's see if it works?
+    #      """,
+    # },
+    #     {
+    #      "key": "idk",
+    #      "category": "world",
+    #      "text": """
+    #      This is an example help entry that we can put on the website maybe, let's see if it works?
+    #      """,
+    # },
 ]
