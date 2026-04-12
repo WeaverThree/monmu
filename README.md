@@ -8,6 +8,44 @@ I'm just making this public to make things easier.
 
 # Todo list! - MVP
 
+- style = admin or gone
+- character commands are all the things that you need for setting up and doing things with character
+- chargen - mons - people
+
+color -> system
+
+information category
+pure info plus look, finger, etc
+
+setdesc remove
+
+
+lookat [atalanta]=[bulge]
+lookat sign
+lookat here=sign
+
+Character Generation:
+ 
++buyevs, +buyivs, +chargen, +equimove, +forgetmove, +learnmove, +resetivs, +setinfo, +setnature, +setspecies, +unquipment, setdesc
+
+Information:
+ 
+roster, stats, talkers, glance, staff, , who, fulllook, info,
+
+General:
+ 
+dice, ic, ooc, vote, drop, find, follow, get, give, help, inventory, look, lookat, ooc, pose, say, quit, spoof, channel, page, find
+
+System:
+ 
+access, color, nick, option, password, quell, quit, sessiosn, style, about, time, status
+
+Wesbite Display:
+ 
+history, webdesc, viewing, etc etc
+
+
+
 - FIX TARGETING ON PAGEs
 
 - Name color in look me

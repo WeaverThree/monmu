@@ -104,7 +104,7 @@ SERVER_SESSION_HANDLER_CLASS = "misc.sessionhandler.MonServerSessionHandler"
 # This is JUST to handle the disconnect bug in 6.0.0
 TELNET_PROTOCOL_CLASS = "misc.telnet_override.TelnetProtocol"
 
-
+HELP_MORE_ENABLED = False
 
 # Global scripts started here will be available through 'evennia.GLOBAL_SCRIPTS.key'. The scripts
 # will survive a reload and be recreated automatically if deleted. Each entry must have the script
