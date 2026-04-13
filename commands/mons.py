@@ -241,7 +241,7 @@ class CmdUseMove(Command):
     key = 'attack'
     aliases = "usemove"
     locks = "cmd:all()"
-    help_category = ""
+    help_category = "General"
     
     _usage = "Usage: attack <move>"
 
