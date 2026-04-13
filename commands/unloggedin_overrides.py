@@ -14,13 +14,12 @@ from .command import MuxCommand
 
 class CmdUnconnectedCreate(MuxCommand):
     """
-    create a new account account
-
+    Creates a new account and attached character of the same name.
+    
     Usage (at login screen):
-      create <accountname> <password> [registration passtoken]
-
-    This creates a new account and attached character of the same name.
+        create <accountname> <password> [registration passtoken]
     """
+
 
     key = "create"
     aliases = ["cre", "cr"]

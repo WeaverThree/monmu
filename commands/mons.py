@@ -20,8 +20,14 @@ _WIDTH = settings.OUR_WIDTH
 
 class CmdMonTypes(Command):
     """
-    Without arguments, prints the full type effectiveness table.
-    Otherwise:
+    Shows type effectiveness data. Without arguments, that means the whole type table. With
+    arguments you can see what any single or dual type is weak or strong to.
+
+    Examples:
+        montypes grass/dark
+
+    Usage:
+        montypes -> show full type chart
         montypes type1[/type2] -> analyze type (combination) vulnerabilities
     """
 
@@ -145,16 +151,19 @@ class CmdRandMons(Command):
             
 class CmdMoveLookup(Command):
     """
-    For checking the data available.
+    Look up the available data for a given move. Will show suggested possibilities if no match.
+
+    Examples:
+        movelookup fire spin
 
     Usage:
-        movelookup <name>
+        movelookup <move name>
     """
     key = 'movelookup'
     locks = "cmd:all()"
     help_category = "Information"
     
-    _usage = "Usage: movelookup <name>"
+    _usage = "Usage: movelookup <move name>"
 
     def func(self):
         mondata = GLOBAL_SCRIPTS.mondata
@@ -180,7 +189,7 @@ class CmdMoveLookup(Command):
 
 class CmdRandMoves(Command):
     """
-    For inspiration.
+    Lists random moves from the move database, for inspiration.
 
     Usage:
         randmoves [count]
@@ -220,7 +229,11 @@ class CmdRandMoves(Command):
 
 class CmdUseMove(Command):
     """
-    Use a move, reducing it's PP until the next refresh.
+    Use a move, reducing it's PP by one until the next refresh.
+
+    Examples:
+        attack fire spin
+        usemove light screen
 
     Usage:
         attack <move>
@@ -314,7 +327,7 @@ class CmdMoveTeleport(MuxCommand):
                 self.msg(
                     f"{target.get_display_name(caller)} is waiting for {caller.get_display_name(caller)}'s "
                     "response about teleporting to you.\n"
-                    "Use |b+teleport yes|n or |b+teleport no|n to respond. Thanks!"
+                    "Use |b+teleport yes|n or |bteleport no|n to respond. Thanks!"
                 )
             return
 

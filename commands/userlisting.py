@@ -20,20 +20,17 @@ _WIDTH = settings.OUR_WIDTH
 
 class CmdWho(MuxCommand):
     """
-    list who is currently online
+    List who's currently online. Who shows extra information for ADMIN+ doing doesn't.
 
     Usage:
         who
         doing
-
-    Shows who is currently online. Doing is an alias that limits info also for those with all
-    permissions.
     """
 
     key = "who"
     aliases = "doing"
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
 
     def func(self):
 
@@ -123,69 +120,9 @@ class CmdWho(MuxCommand):
         self.msg(f"{header}\n{table}\n  {naccounts} online.\n")
 
 
-class CmdWhat(MuxCommand):
-    """
-    list what everyone who is currently online is
-
-    Usage:
-        what
-    """
-
-    key = "what"
-    locks = "cmd:perm(Admin)"
-    help_category = "People"
-
-    def func(self):
-
-        session_list = evennia.SESSION_HANDLER.get_sessions()
-        session_list = sorted(session_list, key=lambda ses: ses.puppet.key if ses.puppet else "---"+ses.account.key)
-
-        naccounts = evennia.SESSION_HANDLER.account_count()
-
-        names = []
-        species = []
-        shortdescs = []
-
-
-        for session in session_list:
-            if not session.logged_in:
-                continue
-
-            session_account = session.get_account()
-            puppet = session.get_puppet()
-
-            name = (
-                puppet.get_display_name(self.caller) if puppet 
-                else f"|[R|X{session.account.name}|n"
-            )
-            
-            names.append(crop(name, 25,"…"))
-            
-            species.append(get_display_mon_banner(puppet))
-
-            shortdescs.append(crop(puppet.short_desc if puppet else "", 100,'…'))
-
-            header = (
-                "|wName|n",
-                "|wSpecies|n",
-                "|wShort Description|n",
-            )
-
-        table = evtable.EvTable(
-            *header, table=(names,species,shortdescs),
-            border_width=0,                              
-        )
-        table.reformat_column(1,align='c')
-        table.reformat_column(2,align="a")
-
-        header = header_two_slot(_WIDTH, "|wWhat's Online|n", headercolor="|M")
-
-        self.msg(f"{header}\n{table}\n  {naccounts} online.\n")
-
-
 class CmdGlance(MuxCommand):
     """
-    A more detailed list of who's in the current area.
+    A detailed list of who's in the current area.
 
     Usage:
         glance
@@ -193,7 +130,7 @@ class CmdGlance(MuxCommand):
 
     key = "glance"
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
 
     def func(self):
 
@@ -219,20 +156,20 @@ class CmdGlance(MuxCommand):
 
 class CmdRoster(MuxCommand):
     """
-    How many of each mon type have been created in the game world.
+    How many of each mon species and type have been created in the game world.
     Excludes staff creatures.
 
     Switches:
         /bycount - Sort by count, then by dexno.
 
     Usage:
-        +roster
-        +roster/bycount
+        roster
+        roster/bycount
     """
 
-    key = "+roster"
+    key = "roster"
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
 
     def func(self):
 
@@ -351,7 +288,7 @@ class CmdStaff(Command):
     key = "staff"
     aliases = ['stafflist']
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
 
     def func(self):
     
@@ -416,13 +353,12 @@ class CmdStatus(Command):
     Set your status message 
 
     Usage:
-        status <my status message>
+        setstatus <my status message>
     """
 
-    key = "status"
-    aliases = ['setstatus']
+    key = "setstatus"
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "System"
 
     def func(self):
 
@@ -449,7 +385,7 @@ class CmdStaffInfo(Command):
     key = "staffinfo"
     aliases = []
     locks = "cmd:perm(Builder)"
-    help_category = "People"
+    help_category = "System"
 
     def func(self):
 
@@ -467,14 +403,14 @@ class CmdStaffInfo(Command):
 
 class CmdTalkers(Command):
     """
-    Show recent (ic) talkers in the current location
+    Show recent (IC) talkers in the current location
 
     Usage:
-        +talkers
+        stalkers
     """
-    key = "+talkers"
+    key = "talkers"
     locks = "cmd:all()"
-    help_category = "People"
+    help_category = "Information"
     
     def func(self):
         

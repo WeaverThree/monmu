@@ -8,30 +8,10 @@ I'm just making this public to make things easier.
 
 # Todo list! - MVP
 
-- style = admin or gone
-- character commands are all the things that you need for setting up and doing things with character
-- chargen - mons - people
-
-color -> system
-
-information category
-pure info plus look, finger, etc
-
-
-
-
 lookat [atalanta]=[bulge]
 lookat sign
 lookat here=sign
 
-
-Information:
- 
-roster, stats, talkers, glance, staff, , who, fulllook, info,
-
-General:
- 
-, +vote,  ,, lookat, ,  find
 
 System:
  
