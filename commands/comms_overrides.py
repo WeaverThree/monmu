@@ -1,4 +1,6 @@
 
+import time
+
 from django.conf import settings # type: ignore
 from django.db.models import Q # type: ignore
 
@@ -11,6 +13,8 @@ from evennia.utils import create, logger, search, utils
 from evennia.utils.evmenu import ask_yes_no
 from evennia.utils.logger import tail_log_file
 from evennia.utils.utils import class_from_module, strip_unsafe_input
+
+from typeclasses.characters import PlayerCharacter
 
 # Page and channel overrides - work on character objects
 # Channel - not @ command
@@ -1287,11 +1291,11 @@ class CmdChannel(COMMAND_DEFAULT_CLASS):
 
 class CmdPage(COMMAND_DEFAULT_CLASS):
     """
-    send a private message to another account
+    send a private message to another player
 
     Usage:
-      page <account> <message>
-      page[/switches] [<account>,<account>,... = <message>]
+      page <player creature> <message>
+      page[/switches] [<player creature>,<player creature>,... = <message>]
       tell        ''
       page <number>
 
@@ -1299,9 +1303,9 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
       last - shows who you last messaged
       list - show your last <number> of tells/pages (default)
 
-    Send a message to target user (if online). If no argument is given, you
-    will get a list of your latest messages. The equal sign is needed for
-    multiple targets or if sending to target with space in the name.
+    Send a message to target player creature (if online). If no argument is given, you will get a
+    list of your latest messages. The equal sign is needed for multiple targets or if sending to
+    target with space in the name.
 
     """
 
@@ -1354,10 +1358,17 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
         if self.args:
             if self.rhs:
                 for target in self.lhslist:
-                    target_obj = self.caller.search(target)
-                    if not target_obj:
+
+                    search = PlayerCharacter.objects.search(target)
+                    if not search:
+                        self.msg(f"Couldn't find player creature '{target}'.")
                         return
-                    targets.append(target_obj)
+                    if len(search) != 1:
+                        self.msg(f"Got multiple hits for '{target}'. This shouldn't happen. Please notify staff.")
+                        return
+                    target = search[0]
+                    targets.append(target)
+
                 message = self.rhs.strip()
             else:
                 # no = sign, handler this as well
@@ -1366,10 +1377,19 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
                     # a number to specify a historic page
                     number = int(target)
                 elif message:
-                    target_obj = self.caller.search(target, quiet=True)
+                    search = PlayerCharacter.objects.search(target)
+                    if not search:
+                        self.msg(f"Couldn't find player creature '{target}'.")
+                        return
+                    if len(search) != 1:
+                        self.msg(f"Got multiple hits for '{target}'. This shouldn't happen. Please notify staff.")
+                        return
+                    target_obj = search[0]
+
+                    # Probably redundant but this is kind of a clunky patch above here -wvr
                     if target_obj:
                         # a proper target
-                        targets = [target_obj[0]]
+                        targets = [target_obj]
                         message = message[0].strip()
                     else:
                         # a message with a space in it - use the original args
@@ -1388,6 +1408,8 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
                 return
 
             header = f"{caller.get_display_name()} |wpages:|n"
+            header_past = f"On {time.strftime("%Y-%m-%d at %H:%M")}, {caller.get_display_name()} |wpaged:|n"
+                                   
             if message.startswith(":"):
                 message = f"{caller.get_display_name()} {message.strip(':').strip()}"
 
@@ -1410,17 +1432,16 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
             rstrings = []
             for target in targets:
                 if not target.access(caller, "msg"):
-                    rstrings.append(f"You are not allowed to page {target}.")
+                    rstrings.append(f"You are not allowed to page {target.get_display_name(caller)}.")
                     continue
                 target.msg(f"{header} {message}")
                 if hasattr(target, "sessions") and not target.sessions.count():
-                    received.append(target.get_display_name())
+                    target.register_post_command_message(f"{header_past} {message}")
                     rstrings.append(
-                        f"{received[-1]} is offline. They will see your message "
-                        "if they list their pages later."
+                        f"{target.get_display_name(caller)} is offline. They will see "
+                        f"{caller.get_display_name(caller)}'s message when they log in again."
                     )
-                else:
-                    received.append(target.get_display_name())
+                received.append(target.get_display_name(caller))
             if rstrings:
                 self.msg("\n".join(rstrings))
             self.msg("Paged %s with: '%s'." % (", ".join(received), message))
