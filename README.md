@@ -18,8 +18,6 @@ It's built on the [evennia](https://github.com/evennia/evennia/) engine.
     - lookat sign
     - lookat here=sign
 
-- Fix coloring in feature list header, possibly check header function
-
 - vote for offline people? idle people? talk IC inside the last hour maybe?
 
 - prune unused zones (no name no rooms no desc) on @zoneinfo

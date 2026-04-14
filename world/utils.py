@@ -62,7 +62,7 @@ def header_two_slot(width, slot1, slot2=None, headercolor="|R"):
         header_right = f"{headercolor}-<|n {slot2} {headercolor}>--|n"
         fill = width - display_len(header_left) - display_len(header_right)
     else:
-        header_left = f"{headercolor}--< {slot1} {headercolor}>-"
+        header_left = f"{headercolor}--<|n {slot1} {headercolor}>-"
         header_right = "|n"
         fill = width - display_len(header_left) + display_len(headercolor)
 
