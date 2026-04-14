@@ -374,15 +374,15 @@ class CmdStatus(Command):
         self.caller.msg(f"Status set to '{status}'")
 
 
-class CmdStaffInfo(Command):
+class CmdSetStaffInfo(Command):
     """
     Set your staff info 
 
     Usage:
-        staffinfo <my staff info>
+        setstaffinfo <my staff info>
     """
 
-    key = "staffinfo"
+    key = "setstaffinfo"
     aliases = []
     locks = "cmd:perm(Builder)"
     help_category = "System"

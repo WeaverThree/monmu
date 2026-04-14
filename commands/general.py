@@ -178,7 +178,7 @@ class CmdStats(Command):
         self.msg(text=(sheet, {"type": "stats"}), options=None)
 
 
-class CmdFinger(Command):
+class CmdInfo(Command):
     """
     Get extra info about a player and their character. Unlike other examination commands, this one
     can target anyone anywhere.

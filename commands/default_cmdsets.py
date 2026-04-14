@@ -14,6 +14,7 @@ the default lineup. You can create your own cmdsets by inheriting from them or d
 
 from evennia import default_cmds
 
+from . import account_overrides
 from . import admin_overrides
 from . import batchprocess_overrides
 from . import building_overrides
@@ -61,7 +62,10 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.remove("batchcommands")
         self.remove("batchcode")
         self.remove("unlink")
+
+        self.remove("nick")
         
+        self.add(account_overrides.CmdNick()) # Quasi-account command exists in both o.o
         self.add(admin_overrides.CmdBan())
         self.add(admin_overrides.CmdBoot())
         self.add(admin_overrides.CmdEmit())
@@ -128,7 +132,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(general.CmdOOC())
         self.add(general.CmdSpoof())
         self.add(general.CmdStats())
-        self.add(general.CmdFinger())
+        self.add(general.CmdInfo())
         self.add(general.CmdFullLook())
         self.add(general.CmdTeleportOOC())
         self.add(general.CmdTeleportIC())
@@ -146,11 +150,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(userlisting.CmdRoster())
         self.add(userlisting.CmdStaff())
         self.add(userlisting.CmdStatus())
-        self.add(userlisting.CmdStaffInfo())
+        self.add(userlisting.CmdSetStaffInfo())
         self.add(userlisting.CmdTalkers())
-
-
-
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -184,6 +185,16 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.remove("rss2chan")
         self.remove("grapevine2chan")
         self.remove("discord2chan")
+        self.remove("style")
+        self.remove("nick")
+
+        self.add(account_overrides.CmdColorTest())
+        self.add(account_overrides.CmdOption())
+        self.add(account_overrides.CmdPassword())
+        self.add(account_overrides.CmdQuell())
+        self.add(account_overrides.CmdQuit())
+        self.add(account_overrides.CmdSessions())
+        self.add(account_overrides.CmdNick()) # Quasi-account command exists in both o.o
 
 
 

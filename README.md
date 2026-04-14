@@ -1,29 +1,25 @@
-# It's a prototype!
+# Still preparing for deployment~
 
-This is an early prototype of a MUSH/MUCK game built on the [evennia](https://github.com/evennia/evennia/) engine.
-Not much here for public consumption as of yet.
-I'm just making this public to make things easier.
+This is the codebase for a mon-themed RP-focused mush/muck. 
+
+Mon details must be loaded into CSV files kept in world/mondata, described in
+typeclasses/scripts/mondata.py. A minimal fail-safe dataset is built-in, but will not be sufficient
+or interesting most likely. The real information is not stored in the repository for probably obvious
+reasons.
+
+It's built on the [evennia](https://github.com/evennia/evennia/) engine.
 
 ---Weaver
 
 # Todo list! - MVP
 
-lookat [atalanta]=[bulge]
-lookat sign
-lookat here=sign
+- lookat command
+    - lookat [atalanta]=[bulge]
+    - lookat sign
+    - lookat here=sign
 
 
-System:
- 
-access, color, nick, option, password, quell, quit, sessiosn, style, about, time, status
-
-Wesbite Display:
- 
-history, webdesc, viewing, etc etc
-
-
-
-- FIX TARGETING ON PAGEs
+- FIX TARGETING ON PAGE
 
 - Name color in look me
 
@@ -31,20 +27,22 @@ history, webdesc, viewing, etc etc
 
 - Fix coloring in feature list header, possibly check header function
 
-- Way to set faction/rank
-
-- skill swapper object
-
 - vote for offline people? idle people? talk IC inside the last hour maybe?
 
 - prune unused zones (no name no rooms no desc) on @zoneinfo
 
-- delete what? figure out look, +stats, +flook
+- figure out look, stats, flook
+
+- Way to set faction/rank
+
+- Website desc Help: history, webdesc, viewing, etc etc
 
 - Figure out what we're going to do about UTF characters
 - Test other mu clients
 
 # Todo List - Future
+
+- skill swapper object
 
 - jail command
 
