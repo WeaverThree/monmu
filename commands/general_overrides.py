@@ -201,7 +201,7 @@ class CmdLook(MuxCommand):
                 if fcheck in location.features:
                     message = (
                         f"|Y{location.features[fcheck]['name']} in|n {location.get_display_name(caller)}\n"
-                        f"{location.features[fcheck]['desc']}"
+                        f"{location.features[fcheck]['desc']}\n"
                     )
                     self.msg(text=(message, {"type": "look"}), options=None)
                     return
@@ -231,7 +231,7 @@ class CmdLook(MuxCommand):
                 if featuretarget in target.features:
                     message = (
                         f"{target.get_display_name(caller)}|Y's {target.features[featuretarget]['name']}|n\n"
-                        f"{target.features[featuretarget]['desc']}"
+                        f"{target.features[featuretarget]['desc']}\n"
                     )
                     self.msg(text=(message, {"type": "look"}), options=None)
                     return

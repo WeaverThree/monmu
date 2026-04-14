@@ -18,15 +18,13 @@ It's built on the [evennia](https://github.com/evennia/evennia/) engine.
     - lookat sign
     - lookat here=sign
 
-- Clear line after look at feature output
-
 - Fix coloring in feature list header, possibly check header function
 
 - vote for offline people? idle people? talk IC inside the last hour maybe?
 
 - prune unused zones (no name no rooms no desc) on @zoneinfo
 
-- Consider stats list orientaitons
+- Consider stats list orientations
 - figure out look, stats, flook
 
 - Way to set faction/rank
