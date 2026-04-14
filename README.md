@@ -4,8 +4,8 @@ This is the codebase for a mon-themed RP-focused mush/muck.
 
 Mon details must be loaded into CSV files kept in world/mondata, described in
 typeclasses/scripts/mondata.py. A minimal fail-safe dataset is built-in, but will not be sufficient
-or interesting most likely. The real information is not stored in the repository for probably obvious
-reasons.
+or interesting most likely. The real information is not stored in the repository for probably
+obvious reasons.
 
 It's built on the [evennia](https://github.com/evennia/evennia/) engine.
 
@@ -26,6 +26,7 @@ It's built on the [evennia](https://github.com/evennia/evennia/) engine.
 
 - prune unused zones (no name no rooms no desc) on @zoneinfo
 
+- Consider stats list orientaitons
 - figure out look, stats, flook
 
 - Way to set faction/rank

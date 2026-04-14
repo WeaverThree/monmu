@@ -156,6 +156,7 @@ class CmdStats(Command):
 
         caller = self.caller
         args = self.args.strip()
+
         if not args:
             target = caller
         else:
@@ -164,14 +165,14 @@ class CmdStats(Command):
                 return
             if not target.is_typeclass(Character):
                 # Because searching by typeclass isn't working fsr
-                self.msg(f"{target.get_display_name()} isn't something that can have stats.")
+                self.msg(f"{target.get_display_name(caller)} isn't something that can have stats.")
                 return
             
         if not target.access(self, "view"):
             self.msg(f"Could not view '{target.get_display_name(caller)}'.")
             return
             
-        always_compare = True if self.cmdstring.lower() == '+compare' else False
+        always_compare = True if self.cmdstring.lower() == 'compare' else False
 
         sheet = target.get_statblock(caller, always_compare=always_compare)
 
