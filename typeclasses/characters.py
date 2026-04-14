@@ -209,7 +209,7 @@ class Character(ObjectParent, DefaultCharacter):
             if display_len(desc) < settings.DESIRED_MIN_DESC:
                 anyone_notice(looker, "Your description should be longer.")
 
-        return f"{self.get_display_header() + '\n' if show_header else ''}{desc}\n"
+        return f"{self.get_display_header(looker) + '\n' if show_header else ''}{desc}\n"
     
 
     def get_statblock(self, looker, always_compare=False, show_header=True, **kwargs):

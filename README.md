@@ -18,11 +18,6 @@ It's built on the [evennia](https://github.com/evennia/evennia/) engine.
     - lookat sign
     - lookat here=sign
 
-
-- FIX TARGETING ON PAGE
-
-- Name color in look me
-
 - Clear line after look at feature output
 
 - Fix coloring in feature list header, possibly check header function
