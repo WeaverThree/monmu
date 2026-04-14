@@ -197,7 +197,7 @@ class Character(ObjectParent, DefaultCharacter):
     def get_display_header(self, looker=None, **kwargs):
         return header_two_slot(_WIDTH,
             f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
-            f"{get_display_mon_banner(self)}",
+            f"{get_inline_mon_banner(self, capstart=True)}",
             headercolor="|b"
         )
 
