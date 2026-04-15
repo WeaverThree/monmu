@@ -132,7 +132,7 @@ def get_display_mon_type(mon):
         return types[type1]['colortoken'] + types[type2]['colortoken']
     
 
-def get_inline_mon_type(mon, capstart=False):
+def get_inline_mon_type(mon, capstart=False, showtype=True):
 
     from typeclasses.characters import Character
 
@@ -157,9 +157,9 @@ def get_inline_mon_type(mon, capstart=False):
         name1 = types[type1]['colorname'].lower()
 
     if not type2:
-        return f"{name1}-type"
+        return f"{name1}{'-type' if showtype else ''}"
     else:
-        return f"{name1}|w/|n{types[type2]['colorname'].lower()}-type"
+        return f"{name1}|w/|n{types[type2]['colorname'].lower()}{'-type' if showtype else ''}"
 
 
 def get_display_mon_banner(mon):
@@ -174,30 +174,37 @@ def get_display_mon_banner(mon):
     else:
         return f"{get_display_mon_type(mon)} #{mon['dexno']} {get_display_mon_name(mon)}"
     
-def get_inline_mon_banner(mon, capstart=False):
+
+def get_inline_mon_banner(mon, capstart=False, subfilter=False, showtype=True):
 
     from typeclasses.characters import Character
 
     # We're distingushing betweend dicts and characters here so can't use is_typeclass
     if not mon:
-        return f"{get_inline_mon_type(mon, capstart)} #? {get_display_mon_name(mon)}"
+        return f"{get_inline_mon_type(mon, capstart, showtype)} #? {get_display_mon_name(mon, subfilter=subfilter)}"
     elif isinstance(mon, Character):
-        return f"{get_inline_mon_type(mon, capstart)} #{mon.dexno if mon.dexno else '?'} {get_display_mon_name(mon)}"
+        return (
+            f"{get_inline_mon_type(mon, capstart, showtype)} #{mon.dexno if mon.dexno else '?'} "
+            f"{get_display_mon_name(mon, subfilter=subfilter)}"
+        )
     else:
-        return f"{get_inline_mon_type(mon, capstart)} #{mon['dexno']} {get_display_mon_name(mon)}"
+        return (
+            f"{get_inline_mon_type(mon, capstart, showtype)} "
+            f"#{mon['dexno']} {get_display_mon_name(mon, subfilter=subfilter)}"
+        )
 
 
-def get_inline_mon_banner_nodex(mon, capstart=False):
+def get_inline_mon_banner_nodex(mon, capstart=False, subfilter=False, showtype=False):
 
     from typeclasses.characters import Character
 
     # We're distingushing betweend dicts and characters here so can't use is_typeclass
     if not mon:
-        return f"{get_inline_mon_type(mon, capstart)} {get_display_mon_name(mon)}"
+        return f"{get_inline_mon_type(mon, capstart, showtype)} {get_display_mon_name(mon, subfilter=subfilter)}"
     elif isinstance(mon, Character):
-        return f"{get_inline_mon_type(mon, capstart)} {get_display_mon_name(mon)}"
+        return f"{get_inline_mon_type(mon, capstart, showtype)} {get_display_mon_name(mon, subfilter=subfilter)}"
     else:
-        return f"{get_inline_mon_type(mon, capstart)} {get_display_mon_name(mon)}"
+        return f"{get_inline_mon_type(mon, capstart, showtype)} {get_display_mon_name(mon, subfilter=subfilter)}"
 
 
 def moves_table(movelist, usedlist=None, useheader=True):

@@ -32,6 +32,7 @@ from world.monutils import (
     get_display_mon_type,
     get_display_mon_name,
     get_inline_mon_banner,
+    get_inline_mon_banner_nodex,
     get_inline_mon_type,
     moves_table,
 )
@@ -193,23 +194,20 @@ class Character(ObjectParent, DefaultCharacter):
     teleport_response = AttributeProperty("", category='teleportmove')
 
 
-
-    def get_display_header(self, looker=None, **kwargs):
-        return header_two_slot(_WIDTH,
-            f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
-            f"{get_inline_mon_banner(self, capstart=True)}",
-            headercolor="|b"
-        )
-
-
     def return_appearance(self, looker=None, show_header=True, **kwargs):
         desc = self.get_display_desc(looker, **kwargs)
+
+        header = header_two_slot(_WIDTH,
+            f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
+            f"#{self.dexno if self.dexno else '?'} {get_display_mon_name(self)}",
+            headercolor="|b"
+        )
 
         if looker == self:
             if display_len(desc) < settings.DESIRED_MIN_DESC:
                 anyone_notice(looker, "Your description should be longer.")
 
-        return f"{self.get_display_header(looker) + '\n' if show_header else ''}{desc}\n"
+        return f"{header + '\n' if show_header else ''}{desc}\n"
     
 
     def get_statblock(self, looker, always_compare=False, show_header=True, **kwargs):
@@ -220,7 +218,13 @@ class Character(ObjectParent, DefaultCharacter):
                 "thus there are no stats to see or compare to.\n"
             )
 
-        out = [self.get_display_header(looker)] if show_header else []
+        header = header_two_slot(_WIDTH,
+            f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
+            f"{get_inline_mon_banner_nodex(self, capstart=True)}",
+            headercolor="|b"
+        )
+
+        out = [header] if show_header else []
 
         if self == looker or (looker.permissions.check("Admin") and not always_compare):
 
@@ -296,7 +300,7 @@ class Character(ObjectParent, DefaultCharacter):
 
         header = header_two_slot(_WIDTH,
             f"{self.get_display_name(looker, **kwargs)}{self.get_extra_display_name_info(looker, **kwargs)}",
-            f"#{self.dexno if self.dexno else '?'} {get_inline_mon_type(self, capstart=True)}",
+            f"#{self.dexno if self.dexno else '?'} {get_inline_mon_type(self, capstart=True, showtype=False)}",
             headercolor="|b"
         )
 
