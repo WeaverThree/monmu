@@ -43,7 +43,7 @@ class CmdMonTypes(Command):
         if not self.args:
             self.print_table()
         else:
-            self.args = self.args.rep    # help_category = "People"lace('/',',')
+            self.args = self.args.replace('/',',')
             types = self.args.split(',')
             if 1 <= len(types) <= 2:
                 self.type_analysis(*types)
