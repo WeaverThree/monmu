@@ -293,8 +293,10 @@ class CmdSetSpecialRoom(Command):
 
 class CmdFeature(MuxCommand):
     """
-    Sets info about a zone.
-    
+    Sets or shows features on a target. Features are basically extra units of description on an
+    object that can be examined with |blook <feature in current room>|n, |blook <object>'s
+    <feature>|n, or the |blookat|n command.
+
     Usage:
         @feature <target> -> show all features on target
         @feature <target>/<featurename> -> show text of just feature
