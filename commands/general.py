@@ -272,7 +272,7 @@ class CmdLookAt(MuxCommand):
     See |b@feature|n for more information about features.
 
     Examples:
-        lookat |Y-> list features|n
+        lookat |Y-> list of features|n
         lookat fountain
         lookat here = fountain
         lookat hina = tail
