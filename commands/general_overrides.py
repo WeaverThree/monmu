@@ -2,9 +2,11 @@
 import re
 import time
 
+from evennia.utils import utils
+
 from .command import MuxCommand
 
-from evennia.utils import utils
+from typeclasses.rooms import Room
 
 from world.utils import get_wordcount, split_on_all_newlines
 
@@ -167,14 +169,15 @@ class CmdHome(MuxCommand):
 
 class CmdLook(MuxCommand):
     """
-    look at location or object
+    look at location or object or feature
 
     Usage:
-      look
-      look <obj>
-      look *<account>
+        look
+        look <obj or feature>
+        look <obj>'s <feature>
+        look *<account>
 
-    Observes your location or objects in your vicinity.
+    Observes your location or objects in your vicinity. Can also look at features.
     """
 
     key = "look"
@@ -209,9 +212,6 @@ class CmdLook(MuxCommand):
             search = ""
             target = None
             featuretarget = None
-            if args.lower().startswith('my'):
-                target = caller
-                featuretarget = args[2:].strip().lower()
             check = [x.strip() for x in _POSESSIVE_SPLITER.split(args,1)]
             if len(check) == 2:
                 search, featuretarget = check
@@ -235,8 +235,18 @@ class CmdLook(MuxCommand):
                     )
                     self.msg(text=(message, {"type": "look"}), options=None)
                     return
+                elif not featuretarget:
+                    if target.features:
+                        prep = 'in' if target.is_typeclass(Room) else 'on'
+                        self.msg(
+                            f"|YFeatures {prep}|n {target.get_display_name(caller)}|Y:|n "
+                            f"{', '.join([f['name'] for n,f in sorted(target.features.items())])}."
+                        )
+                    else:
+                        self.msg(f"{target.get_display_name(caller)} |Yhas no features.|n")
+                    return
                 else:
-                    self.msg(f"{target.get_display_name(caller)} has no '{featuretarget}'.")
+                    self.msg(f"{target.get_display_name(caller)} |Yhas no '{featuretarget}'.|n")
                     return
                 
         desc = caller.at_look(target)

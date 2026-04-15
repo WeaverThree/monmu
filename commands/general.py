@@ -6,6 +6,7 @@ from django.conf import settings
 from .command import Command, MuxCommand
 from world.utils import split_on_all_newlines, get_wordcount, get_defaulthome, get_specialroom, is_staff_character
 from typeclasses.characters import Character, PlayerCharacter
+from typeclasses.rooms import Room
 
 _TAG_OOC_TARGET = settings.TAG_OOC_TARGET
 _VOTES_PER_DAY = settings.VOTES_PER_DAY
@@ -263,6 +264,91 @@ class CmdFullLook(Command):
         desc = target.return_appearance(caller, show_header=False)
 
         self.msg(text=(''.join((finger,sheet,'\n',desc)), {"type": "stats"}), options=None)
+
+
+class CmdLookAt(MuxCommand):
+    """
+    Look at a feature. Will list available features if none is specified.
+    See |b@feature|n for more information about features.
+
+    Examples:
+        lookat |Y-> list features|n
+        lookat fountain
+        lookat here = fountain
+        lookat hina = tail
+        lookat hina = |Y-> list of features|n
+
+    You can also use |blook|n:
+        look fountain
+        look hina's tail
+
+    Usage:
+        lookat [feature]
+        lookat <object> [= feature]
+    """
+
+    key = "lookat"
+    aliases = "lat"
+    locks = "cmd:all()"
+    help_category = "Information"
+
+    def func(self):
+
+        caller = self.caller
+        rhs = self.rhs
+        lhs = self.lhs
+        target = None
+        searchtarget = ""
+        featurename = ""
+
+        if '=' in self.args:
+            featurename = rhs.lower()
+            searchtarget = lhs
+        else:
+            featurename = lhs.lower()
+            target = caller.location
+
+        print (f"---\nfn={featurename} st={searchtarget} tg={target}")
+
+        if not target:
+            target = caller.search(searchtarget)
+            print (target)
+            if not target:
+                return
+    
+        if not featurename:
+            if target.features:
+                prep = 'in' if target.is_typeclass(Room) else 'on'
+                self.msg(
+                    f"|YFeatures {prep}|n {target.get_display_name(caller)}|Y:|n "
+                    f"{', '.join([f['name'] for n,f in sorted(target.features.items())])}."
+                )
+            else:
+                self.msg(f"{target.get_display_name(caller)} |Yhas no features.|n")
+            return
+        
+        if featurename not in target.features:
+            self.msg(f"{target.get_display_name(caller)} |Yhas no '{featurename}'.|n")
+            return
+
+        if target.is_typeclass(Room):
+            message = (
+                f"|Y{target.features[featurename]['name']} in|n {target.get_display_name(caller)}\n"
+                f"{target.features[featurename]['desc']}\n"
+            )
+        else:
+            message = (
+                f"{target.get_display_name(caller)}|Y's {target.features[featurename]['name']}|n\n"
+                f"{target.features[featurename]['desc']}\n"
+            )
+
+        self.msg(text=(message, {"type": "look"}), options=None)
+        
+        
+
+
+
+
 
 
 class CmdTeleportOOC(Command):

@@ -13,11 +13,6 @@ It's built on the [evennia](https://github.com/evennia/evennia/) engine.
 
 # Todo list! - MVP
 
-- lookat command
-    - lookat [atalanta]=[bulge]
-    - lookat sign
-    - lookat here=sign
-
 - vote for offline people? idle people? talk IC inside the last hour maybe?
 
 - prune unused zones (no name no rooms no desc) on @zoneinfo
