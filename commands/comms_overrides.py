@@ -1965,7 +1965,7 @@ class CmdDiscord2Chan(COMMAND_DEFAULT_CLASS):
     """
 
     key = "@discord2chan"
-    aliases = ("discord",)
+    aliases = ("@discord",)
     switch_options = (
         "channel",
         "delete",
