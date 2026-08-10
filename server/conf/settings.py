@@ -211,7 +211,8 @@ REMOVE_ON_ACCEPT_CHANNELS = ["Incoming"]
 ADD_ON_ACCEPT_CHANNELS = ["Public"]
 ADD_ON_APPROVE_CHANNELS = ["Guild", "Rogue", "Mercenary"]
 
-
+# I wrote our own max length validator and we don't need a min length validator...
+AUTH_USERNAME_VALIDATORS = []
 
 
 
