@@ -72,7 +72,7 @@ class CmdWho(MuxCommand):
             idles.append(utils.time_format(time.time() - session.cmd_last_visible, 0))
             icidles.append(utils.time_format(puppet.ic_idle_time, 0) if puppet and puppet.ic_idle_time else "Never")
             locations.append(puppet.location.key if puppet and puppet.location else "|[R|X---|n")
-            modes.append(puppet.player_mode)
+            modes.append(puppet.player_mode if puppet else "---")
             statuses.append(utils.crop(puppet.whostatus,50,"…") if puppet else "")
             cmds.append(session.cmd_total)
             protocols.append(session.protocol_key)
