@@ -1,6 +1,7 @@
 # Still preparing for deployment~
 
-This is the codebase for a mon-themed RP-focused mush/muck. 
+This is the codebase for a mon-themed RP-focused mush/muck. Some elements in this codebase would
+have to be changed to make it applicable to a different specific mu.
 
 Mon details must be loaded into CSV files kept in world/mondata, described in
 typeclasses/scripts/mondata.py. A minimal fail-safe dataset is built-in, but will not be sufficient
