@@ -52,12 +52,12 @@ class Room(ObjectParent, DefaultRoom):
             if moved_obj.player_mode not in ("DOWN", "JAIL"):
                 if self.is_ic_room and not moved_obj.account.permissions.check('Builder'):
                     if moved_obj.player_mode != "IC":
-                        moved_obj.msg("|mMoving to IC grid, enetring IC mode.|n")
+                        moved_obj.msg("|mMoving to IC grid, entering IC mode.|n")
                         moved_obj.player_mode = "IC"
                         moved_obj.last_ic_room = None # for +ic/ooc, touching the grid negates your cookie
                 else:
                     if moved_obj.player_mode != "OOC":
-                        moved_obj.msg("|mLeaving IC grid, enetring OOC mode.|n")
+                        moved_obj.msg("|mLeaving IC grid, entering OOC mode.|n")
                         moved_obj.player_mode = "OOC"
 
     # def at_object_leave(self, moved_obj, target_location, move_type="move", **kwargs):
