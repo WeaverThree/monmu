@@ -375,6 +375,8 @@ class Character(ObjectParent, DefaultCharacter):
         self.ivs = ivs
         self.ivtokens = _IV_TOKEN_BUDGET
         self.ivtokens_spent = 0
+        self.update_stats()
+
     
     def reset_evs(self, caller=None):
 
@@ -384,6 +386,8 @@ class Character(ObjectParent, DefaultCharacter):
         self.evs = evs
         # Evtokens can only be removed or added by staff
         self.evtokens_spent = 0
+        self.update_stats()
+
 
 
     def init_stats (self):
